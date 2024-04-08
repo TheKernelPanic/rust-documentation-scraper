@@ -1,0 +1,414 @@
+
+
+
+
+<p><a id="the-match-control-flow-operator"></a></p>
+
+<h2 id="the-match-control-flow-construct"><a class="header" href="#the-match-control-flow-construct">El <code>complemento</code> Control Flow Construct</a></h2>
+
+<p>Rust tiene una construcción de flujo de control extremadamente poderosa llamada <code>match</code> that
+le permite comparar un valor con una serie de patrones y luego ejecutar
+código en función del patrón que coincida. Los patrones pueden estar compuestos de valores literales,
+<a href="ch18-00-patterns.html">nombres de variables, comodines y muchas otras cosas; Capítulo
+<!-- ignore --> El capítulo 18</a> cubre todos los diferentes tipos de patrones
+y lo que hacen. El poder del <code>partido</code> proviene de la expresividad del
+patrones y el hecho de que el compilador confirme que todos los casos posibles son
+manejado</p>.
+
+<p>Piense en una expresión de <code>coincidencia</code> como si fuera una máquina clasificadora de monedas: las monedas se deslizan
+por una pista con agujeros de varios tamaños a lo largo de la misma, y cada moneda cae por ella
+el primer agujero que encuentra y en el que encaja. De la misma manera, los valores van
+recorren cada patrón de una <code>coincidencia</code> y, en el primer patrón, el valor «se ajusta»
+el valor cae en el bloque de código asociado que se utilizará durante la ejecución.</p>
+
+<p>Hablando de monedas, ¡usémoslas como ejemplo usando <code>Match</code>! Podemos escribir un
+función que toma una moneda estadounidense desconocida y, de forma similar a como se hace para contar
+máquina, determina qué moneda es y devuelve su valor en centavos, como se muestra
+en el Listado 6-3</p>.
+
+<pre><pre class="playground"><code class="language-rust">enum Coin {
+    Penny,
+    Nickel,
+    Dime,
+    Quarter,
+}
+
+fn value_in_cents(coin: Coin) -&gt; u8 {
+    match coin {
+        Coin::Penny =&gt; 1,
+        Coin::Nickel =&gt; 5,
+        Coin::Dime =&gt; 10,
+        Coin::Quarter =&gt; 25,
+    }
+}
+<span class="boring">
+</span><span class="boring">fn main() {}</span></code></pre></pre>
+
+<p><span class="caption">Listado 6-3: Una enumeración y una expresión de <code>coincidencia</code> que tiene
+las variantes de la enumeración</span></p> como patrones
+
+<p>Analicemos la <code>coincidencia en la función</code> <code>value_in_cents</code>. Primero enumeramos
+la <code>palabra</code> clave coincidente seguida de una expresión, que en este caso es el valor
+<code>moneda</code>. Esto parece muy similar a una expresión condicional que se usa con <code>if</code>, pero
+hay una gran diferencia: con <code>if</code>, la condición debe evaluarse como
+Valor booleano, pero aquí puede ser de cualquier tipo. El tipo de <code>moneda</code> de este ejemplo
+es la <code>enumeración de monedas</code> que definimos en la primera línea</p>.
+
+<p>Los siguientes son los brazos <code>del fósforo</code>. Un brazo tiene dos partes: un patrón y un código. El
+<code>el primer brazo aquí tiene un patrón que es el valor <code>Coin: :Penny</code> y luego el =></code>
+operador que separa el patrón y el código a ejecutar. El código en este caso
+es solo el valor <code>1</code>. Cada brazo está separado del siguiente con una coma</p>.
+
+<p>Cuando se ejecuta la expresión de <code>coincidencia</code>, compara el valor resultante con
+el patrón de cada brazo, en orden. Si un patrón coincide con el valor, el código
+se ejecuta el asociado a ese patrón. Si ese patrón no coincide con
+valor, la ejecución continúa hasta la siguiente rama, como en una máquina clasificadora de monedas.
+Podemos tener tantos brazos como necesitemos: en el Listado 6-3, nuestra <code>pareja</code> tiene</p> cuatro brazos.
+
+<p>El código asociado a cada brazo es una expresión y el valor resultante de
+la expresión del brazo correspondiente es el valor que se devuelve para
+expresión de <code>coincidencia</code> completa.</p>
+
+<p>No solemos usar corchetes si el código del brazo coincidente es corto, tal como es
+en el Listado 6-3, donde cada brazo solo devuelve un valor. Si quieres ejecutar varios
+líneas de código en un brazo coincidente, debes usar corchetes y la coma
+seguir el brazo es entonces opcional. Por ejemplo, se imprime el siguiente código
+«¡Un centavo de suerte!» cada vez que se llama al método con un <code>Coin: :Penny</code>, pero aun así
+devuelve el último valor del bloque, <code>1:</code></p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">enum Coin {
+</span><span class="boring">    Penny,
+</span><span class="boring">    Nickel,
+</span><span class="boring">    Dime,
+</span><span class="boring">    Quarter,
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn value_in_cents(coin: Coin) -&gt; u8 {
+    match coin {
+        Coin::Penny =&gt; {
+            println!("Lucky penny!");
+            1
+        }
+        Coin::Nickel =&gt; 5,
+        Coin::Dime =&gt; 10,
+        Coin::Quarter =&gt; 25,
+    }
+}
+<span class="boring">
+</span><span class="boring">fn main() {}</span></code></pre></pre>
+
+<h3 id="patterns-that-bind-to-values"><a class="header" href="#patterns-that-bind-to-values">Patrones que se unen a los valores</a></h3>
+
+<p>Otra característica útil de los brazos de cerilla es que pueden unirse a las partes del
+valores que coinciden con el patrón. Así es como podemos extraer valores de la enumeración
+</p>variantes.
+
+<p>Como ejemplo, cambiemos una de nuestras variantes de enumeración para que contenga datos en su interior.
+Desde 1999 hasta 2008, los Estados Unidos acuñaron monedas de veinticinco centavos con diferentes
+diseños para cada uno de los 50 estados, por un lado. Ninguna otra moneda tiene estado
+diseños, por lo que solo 25 centavos tienen este valor extra. Podemos añadir esta información a
+nuestra <code>enumeración</code> cambiando la variante <code>trimestral</code> para incluir un valor de <code>USState</code>
+almacenado en su interior, lo cual hemos hecho en el Listado 6-4</p>.
+
+<pre><pre class="playground"><code class="language-rust">#[derive(Debug)] // so we can inspect the state in a minute
+enum UsState {
+    Alabama,
+    Alaska,
+    // --snip--
+}
+
+enum Coin {
+    Penny,
+    Nickel,
+    Dime,
+    Quarter(UsState),
+}
+<span class="boring">
+</span><span class="boring">fn main() {}</span></code></pre></pre>
+
+<p><span class="caption"><code>Listado 6-4: Una enumeración de <code>monedas</code> en la que la variante Quarter</code>
+</span></p><code>también tiene un valor en EE. UU.</code>
+
+<p>Imaginemos que un amigo está intentando recaudar los 50 centavos estatales. Mientras
+clasificamos nuestras monedas sueltas por tipo de moneda, y también indicaremos el nombre del
+estado asociado a cada trimestre, de modo que si es uno que nuestro amigo no tiene,
+pueden añadirlo a su colección.</p>
+
+<p>En la expresión de coincidencia de este código, agregamos una variable llamada <code>state</code> al
+patrón que coincide con los valores de la variante <code>Coin: :Quarter</code>. Cuando un
+<code>Coin: :Quarter</code> coincide, la variable de <code>estado</code> se vinculará a su valor
+estado del trimestre. Luego podemos usar el <code>estado</code> en el código de ese brazo, así:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#[derive(Debug)]
+</span><span class="boring">enum UsState {
+</span><span class="boring">    Alabama,
+</span><span class="boring">    Alaska,
+</span><span class="boring">    // --snip--
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">enum Coin {
+</span><span class="boring">    Penny,
+</span><span class="boring">    Nickel,
+</span><span class="boring">    Dime,
+</span><span class="boring">    Quarter(UsState),
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn value_in_cents(coin: Coin) -&gt; u8 {
+    match coin {
+        Coin::Penny =&gt; 1,
+        Coin::Nickel =&gt; 5,
+        Coin::Dime =&gt; 10,
+        Coin::Quarter(state) =&gt; {
+            println!("State quarter from {:?}!", state);
+            25
+        }
+    }
+}
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    value_in_cents(Coin::Quarter(UsState::Alaska));
+</span><span class="boring">}</span></code></pre></pre>
+
+<p><code>Si tuviéramos que llamar <code>value_in_cents (Coin: :Quarter (USState: :Alaska))</code>, coin</code>
+sería <code>Coin: :Quarter (USState: :Alaska</code>). Cuando comparamos ese valor con cada
+de los brazos del fósforo, ninguno coincide hasta que lleguemos a <code>Coin: :Quarter (state).</code> En
+En ese momento, el enlace <code>del estado</code> será el valor <code>USState: :Alaska</code>. Podemos
+¡entonces usa esa encuadernación en la <code>impresión!</code> expresión, obteniendo así el interior
+indica el valor fuera de la variante de enumeración de <code>monedas</code> para el <code>trimestre</code></p>.
+
+<h3 id="matching-with-optiont"><a class="header" href="#matching-with-optiont">Emparejamiento con <code>la opción</code></a></h3> <T>
+
+<p>En la sección anterior, queríamos obtener el valor <code>T</code> interno del <code>Some</code>
+caso cuando usamos <code>Option</code><T>; también podemos manejar <code>Option</code> <T>usando <code>match</code>, como
+¡lo hicimos con la <code>enumeración Coin</code>! En lugar de comparar monedas, compararemos las
+variantes de <code>Option</code><T>, pero la forma en que funciona la expresión de <code>coincidencia</code> sigue siendo
+lo mismo.</p>
+
+<p>Supongamos que queremos escribir una función que tome una <code>opción</code> <i32>y, si
+hay un valor en su interior, añade 1 a ese valor. Si no hay ningún valor en su interior,
+la función debe devolver el valor <code>None</code> y no intentar ejecutar ningún
+operaciones.</p>
+
+<p>Esta función es muy fácil de escribir, gracias a <code>Match</code>, y tendrá el aspecto
+Listado 6-5</p>.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    fn plus_one(x: Option&lt;i32&gt;) -&gt; Option&lt;i32&gt; {
+        match x {
+            None =&gt; None,
+            Some(i) =&gt; Some(i + 1),
+        }
+    }
+
+    let five = Some(5);
+    let six = plus_one(five);
+    let none = plus_one(None);
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 6-5: Una función que usa una expresión de <code>coincidencia</code> en
+<code>una opción</code></span></p> <i32>
+
+<p>Examinemos la primera ejecución de <code>plus_one</code> con más detalle. Cuando llamemos
+<code>plus_one (five)</code>, la variable <code>x</code> del cuerpo de <code>plus_one</code> tendrá
+valor <code>Some</code> (5). Luego lo comparamos con cada brazo del partido:</p>
+
+<pre><code class="language-rust ignore"><span class="boring">fn main() {
+</span><span class="boring">    fn plus_one(x: Option&lt;i32&gt;) -&gt; Option&lt;i32&gt; {
+</span><span class="boring">        match x {
+</span>            None =&gt; None,
+<span class="boring">            Some(i) =&gt; Some(i + 1),
+</span><span class="boring">        }
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    let five = Some(5);
+</span><span class="boring">    let six = plus_one(five);
+</span><span class="boring">    let none = plus_one(None);
+</span><span class="boring">}</span></code></pre>
+
+<p>El valor <code>Some (5)</code> no coincide con el patrón <code>None</code>, por lo que continuamos con
+siguiente brazo:</p>
+
+<pre><code class="language-rust ignore"><span class="boring">fn main() {
+</span><span class="boring">    fn plus_one(x: Option&lt;i32&gt;) -&gt; Option&lt;i32&gt; {
+</span><span class="boring">        match x {
+</span><span class="boring">            None =&gt; None,
+</span>            Some(i) =&gt; Some(i + 1),
+<span class="boring">        }
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    let five = Some(5);
+</span><span class="boring">    let six = plus_one(five);
+</span><span class="boring">    let none = plus_one(None);
+</span><span class="boring">}</span></code></pre>
+
+<p>¿<code>Algunos (5)</code> coinciden con <code>algunos (i)</code>? ¡Lo hace! Tenemos la misma variante. La <code>i</code>
+se une al valor contenido en <code>Some</code>, por <code>lo</code> que toma el valor <code>5</code>. El código en
+a continuación, se ejecuta el brazo coincidente, por lo que añadimos 1 al valor de <code>i</code> y creamos un
+nuevo valor de <code>Some</code> con un total de <code>6</code> en su interior.</p>
+
+<p><code>Ahora consideremos la segunda llamada de <code>plus_one</code> en el Listado 6-5, donde x es</code>
+<code>Ninguna.</code> Entramos en el <code>partido</code> y lo comparamos con el primer brazo:</p>
+
+<pre><code class="language-rust ignore"><span class="boring">fn main() {
+</span><span class="boring">    fn plus_one(x: Option&lt;i32&gt;) -&gt; Option&lt;i32&gt; {
+</span><span class="boring">        match x {
+</span>            None =&gt; None,
+<span class="boring">            Some(i) =&gt; Some(i + 1),
+</span><span class="boring">        }
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    let five = Some(5);
+</span><span class="boring">    let six = plus_one(five);
+</span><span class="boring">    let none = plus_one(None);
+</span><span class="boring">}</span></code></pre>
+
+<p>¡Coincide! No hay ningún valor al que añadir, por lo que el programa se detiene y devuelve el
+<code>No hay ningún</code> valor en el lado derecho de <code>=></code>. Porque el primer brazo coincidió, ningún otro
+los brazos se comparan.</p>
+
+<p>La combinación de <code>coincidencias</code> y enumeraciones es útil en muchas situaciones. Verás esto
+usa mucho el patrón en el código de <code>Rust: compara con</code> una enumeración, vincula una variable a
+los datos que contiene y luego ejecuta el código basado en ellos. Es un poco complicado al principio, pero
+Una vez que te acostumbres, desearás tenerlo en todos los idiomas. Es
+siempre uno de los favoritos de los usuarios.</p>
+
+<h3 id="matches-are-exhaustive"><a class="header" href="#matches-are-exhaustive">Los partidos son exhaustivos</a></h3>
+
+<p>Hay otro aspecto del <code>partido</code> que debemos analizar: los patrones de los brazos deben
+cubrir todas las posibilidades. Considera esta versión de nuestra función <code>plus_one,</code>
+que tiene un error y no</p> se compila:
+
+<pre><code class="language-rust ignore does_not_compile"><span class="boring">fn main() {
+</span>    fn plus_one(x: Option&lt;i32&gt;) -&gt; Option&lt;i32&gt; {
+        match x {
+            Some(i) =&gt; Some(i + 1),
+        }
+    }
+<span class="boring">
+</span><span class="boring">    let five = Some(5);
+</span><span class="boring">    let six = plus_one(five);
+</span><span class="boring">    let none = plus_one(None);
+</span><span class="boring">}</span></code></pre>
+
+<p>No solucionamos el caso <code>Ninguno</code>, por lo que este código provocará un error. Por suerte, es
+un bicho que Rust sabe cómo atrapar. Si intentamos compilar este código, obtendremos esto
+error:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling enums v0.1.0 (file:///projects/enums)
+error[E0004]: non-exhaustive patterns: `None` not covered
+ --&gt; src/main.rs:3:15
+  |
+3 |         match x {
+  |               ^ pattern `None` not covered
+  |
+note: `Option&lt;i32&gt;` defined here
+ --&gt; /rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/src/option.rs:518:1
+  |
+  = note: 
+/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/src/option.rs:522:5: not covered
+  = note: the matched value is of type `Option&lt;i32&gt;`
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
+  |
+4 ~             Some(i) =&gt; Some(i + 1),
+5 ~             None =&gt; todo!(),
+  |
+
+For more information about this error, try `rustc --explain E0004`.
+error: could not compile `enums` due to previous error
+</code></pre>
+
+<p>Rust sabe que no cubrimos todos los casos posibles, e incluso sabe cuáles
+¡Olvidamos un patrón! Los partidos en Rust son <em>exhaustivos</em>: ¡debemos agotar hasta el último
+posibilidad para que el código sea válido. Especialmente en el caso de
+<code>Opción</code><T>, cuando Rust evita que olvidemos manejar explícitamente el
+En <code>ningún</code> caso, nos protege de asumir que tenemos un valor cuando podríamos
+son nulos, lo que hace imposible el error de mil millones de dólares discutido anteriormente.</p>
+
+<h3 id="catch-all-patterns-and-the-_-placeholder"><a class="header" href="#catch-all-patterns-and-the-_-placeholder"><code>Los patrones generales y el marcador de posición _</code></a></h3>
+
+<p>Al usar enumeraciones, también podemos tomar acciones especiales para algunos valores en particular, pero
+para todos los demás valores, realiza una acción predeterminada. Imagina que estamos implementando un juego
+donde, si sacas un 3 en una tirada de dados, tu jugador no se mueve, sino
+recibe un sombrero nuevo y elegante. Si sacas un 7, tu jugador pierde un sombrero elegante. ¿Para todos
+otros valores, tu jugador mueve esa cantidad de espacios en el tablero de juego. Aquí está
+una <code>partida</code> que implemente esa lógica, con el resultado de la tirada de dados
+codificado en lugar de un valor aleatorio, y el resto de la lógica representada por
+funciones sin cuerpos porque implementarlas realmente está fuera del alcance de
+este ejemplo:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let dice_roll = 9;
+    match dice_roll {
+        3 =&gt; add_fancy_hat(),
+        7 =&gt; remove_fancy_hat(),
+        other =&gt; move_player(other),
+    }
+
+    fn add_fancy_hat() {}
+    fn remove_fancy_hat() {}
+    fn move_player(num_spaces: u8) {}
+<span class="boring">}</span></code></pre></pre>
+
+<p>Para los dos primeros brazos, los patrones son los valores literales <code>3</code> y <code>7</code>. ¿Para
+el último brazo que cubre todos los demás valores posibles, el patrón es
+variable que hemos elegido nombrar a <code>otra</code>. El código que se ejecuta para el <code>otro</code> brazo
+usa la variable pasándola a la función <code>move_player</code></p>.
+
+<p>Este código se compila, aunque no hayamos enumerado todos los valores posibles a
+<code>u8</code> puede tener, porque el último patrón coincidirá con todos los valores, no específicamente
+listado. Este patrón general cumple con el requisito de que la <code>coincidencia debe ser</code>
+exhaustivo. Tenga en cuenta que tenemos que poner el brazo comodín en último lugar porque
+los patrones se evalúan en orden. Si colocamos el brazo comodín antes, el otro
+los brazos nunca funcionarían, ¡así que Rust nos avisará si añadimos brazos después de un</p> comodín!
+
+<p>Rust también tiene un patrón que podemos usar cuando queremos un comodín pero no queremos
+<em>usa</em> el valor en el patrón general: <code>_</code> es un patrón especial que coincide
+cualquier valor y no se vincula a ese valor. Esto le dice a Rust que no vamos a hacerlo
+usa el valor, por lo que Rust no nos avisará sobre una variable no utilizada.</p>
+
+<p>Cambiemos las reglas del juego: ahora, si sacas algo que no sea un 3 o
+con un 7, debes volver a tirar. Ya no necesitamos usar el valor general, así que
+</p><code>podemos cambiar nuestro código para usar <code>_</code> en lugar de la variable llamada other:</code>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let dice_roll = 9;
+    match dice_roll {
+        3 =&gt; add_fancy_hat(),
+        7 =&gt; remove_fancy_hat(),
+        _ =&gt; reroll(),
+    }
+
+    fn add_fancy_hat() {}
+    fn remove_fancy_hat() {}
+    fn reroll() {}
+<span class="boring">}</span></code></pre></pre>
+
+<p>Este ejemplo también cumple con el requisito de exhaustividad porque estamos explícitamente
+ignorando todos los demás valores del último brazo; no hemos olvidado nada</p>.
+
+<p>Por último, cambiaremos las reglas del juego una vez más para que nada más
+ocurre en tu turno si sacas algo que no sea un 3 o un 7. Podemos expresar
+eso usando el valor unitario (el tipo de tupla vacía que mencionamos en <a href="ch03-02-data-types.html#the-tuple-type">«The Tuple»)
+Escribe «»</a> (<!-- ignore --> sección) como el código que va con el brazo <code>_</code></p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let dice_roll = 9;
+    match dice_roll {
+        3 =&gt; add_fancy_hat(),
+        7 =&gt; remove_fancy_hat(),
+        _ =&gt; (),
+    }
+
+    fn add_fancy_hat() {}
+    fn remove_fancy_hat() {}
+<span class="boring">}</span></code></pre></pre>
+
+<p>Aquí, le decimos a Rust explícitamente que no vamos a usar ningún otro valor
+eso no coincide con un patrón de una rama anterior, y no queremos ejecutar ninguna
+código en este caso.</p>
+
+<p>Encontraremos más información sobre patrones y combinaciones en el <a href="ch18-00-patterns.html">capítulo
+</a>18 <!-- ignore -->. Por ahora, vamos a pasar a la
+la sintaxis <code>if let</code>, que puede resultar útil en situaciones en las que la expresión <code>match</code>
+es un poco prolijo.</p>

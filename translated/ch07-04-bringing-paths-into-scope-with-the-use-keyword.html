@@ -1,0 +1,441 @@
+
+
+<h2 id="bringing-paths-into-scope-with-the-use-keyword"><a class="header" href="#bringing-paths-into-scope-with-the-use-keyword">Incluir rutas en el ámbito de aplicación con la palabra clave <code>use</code></a></h2>
+
+<p>Tener que escribir las rutas para llamar a las funciones puede resultar incómodo y
+repetitivo. En el Listado 7-7, si elegimos la ruta absoluta o relativa a
+<code>la función <code>add_to_waitlist, cada vez que queríamos llamar a add_to_waitlist</code></code>
+<code>tuvimos</code> que especificar <code>front_of_house</code> y también el alojamiento. Afortunadamente, hay un
+forma de simplificar este proceso: podemos crear un acceso directo a una ruta con el <code>uso</code>
+usa una palabra clave una vez y luego usa el nombre más corto en cualquier otro lugar del ámbito.</p>
+
+<p>En el Listado 7-11, incluimos el módulo <code>crate: :front_of_house: :hosting</code> en el
+<code>el alcance de la función eat_at_restaurant, por lo que solo tenemos que especificarlo</code>
+<code>hosting: :add_to_waitlist para llamar a la función add_to_waitlist</code> <code>en</code>
+</p><code>eat_at_restaurant</code>.
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust noplayground test_harness">mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+    }
+}
+
+use crate::front_of_house::hosting;
+
+pub fn eat_at_restaurant() {
+    hosting::add_to_waitlist();
+}</code></pre>
+
+<p><span class="caption">Listado 7-11: Incluir un módulo en el ámbito de aplicación con
+<code>usar</code></span></p>
+
+<p>Agregar un <code>use</code> y una ruta en un ámbito es similar a crear un enlace simbólico en
+el sistema de archivos. Al agregar, <code>use crate: :front_of_house: :hosting</code> en la caja
+<code>root, <code>hosting</code> es ahora un nombre válido en ese ámbito, igual que si el hosting</code>
+el módulo se había definido en la raíz de la caja. <code>Rutas introducidas en el ámbito de aplicación con el uso</code>
+compruebe también la privacidad, como cualquier otra ruta.</p>
+
+<p>Tenga en cuenta que el <code>use</code> solo crea el acceso directo para el ámbito particular en el que el
+se produce el <code>use</code>. El listado 7-12 mueve la función <code>eat_at_restaurant a una nueva</code>
+<code>módulo secundario llamado <code>cliente</code>, que entonces tiene un alcance diferente al de uso</code>
+sentencia, por lo que el cuerpo de la función no se compilará:</p>
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust noplayground test_harness does_not_compile ignore">mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+    }
+}
+
+use crate::front_of_house::hosting;
+
+mod customer {
+    pub fn eat_at_restaurant() {
+        hosting::add_to_waitlist();
+    }
+}</code></pre>
+
+<p><span class="caption">Listado 7-12: Una declaración de <code>uso</code> solo se aplica en el ámbito
+está dentro</span></p>
+
+<p>El error del compilador muestra que el acceso directo ya no se aplica en
+módulo <code>de cliente</code></p>:
+
+<pre><code class="language-console">$ cargo build
+   Compiling restaurant v0.1.0 (file:///projects/restaurant)
+warning: unused import: `crate::front_of_house::hosting`
+ --&gt; src/lib.rs:7:5
+  |
+7 | use crate::front_of_house::hosting;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0433]: failed to resolve: use of undeclared crate or module `hosting`
+  --&gt; src/lib.rs:11:9
+   |
+11 |         hosting::add_to_waitlist();
+   |         ^^^^^^^ use of undeclared crate or module `hosting`
+
+For more information about this error, try `rustc --explain E0433`.
+warning: `restaurant` (lib) generated 1 warning
+error: could not compile `restaurant` due to previous error; 1 warning emitted
+</code></pre>
+
+<p>¡Tenga en cuenta que también hay una advertencia de que el <code>uso</code> ya no se usa en su ámbito! Para
+solucione este problema, mueva también el <code>uso</code> dentro <code>del módulo de cliente</code> o consulte
+el acceso directo en el módulo principal con <code>super: :hosting</code> en el módulo secundario
+módulo <code>de cliente</code></p>.
+
+<h3 id="creating-idiomatic-use-paths"><a class="header" href="#creating-idiomatic-use-paths"><code>Creación de rutas de uso idiomáticas</code></a></h3>
+
+<p><code>En el Listado 7-11, es posible que se haya preguntado por qué especificamos <code>usar crate: :front_of_house: :hosting y luego llamamos hosting: :add_to_waitlist</code> en</code>
+<code><code>eat_at_restaurant en lugar de especificar la ruta de uso hasta</code></code>
+la función <code>add_to_waitlist para lograr el mismo resultado, como en el Listado</code> 7-13</p>.
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust noplayground test_harness">mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+    }
+}
+
+use crate::front_of_house::hosting::add_to_waitlist;
+
+pub fn eat_at_restaurant() {
+    add_to_waitlist();
+}</code></pre>
+
+<p><span class="caption">Listado 7-13: Introducir la función <code>add_to_waitlist</code>
+</span></p><code>dentro del alcance del uso, que es unidiomático</code>
+
+<p>Aunque tanto el Listado 7-11 como el 7-13 realizan la misma tarea, el Listado 7-11 es
+<code>la forma idiomática de ampliar el alcance de una función con el uso.</code> Trayendo el
+el módulo principal de la función dentro del alcance con <code>use</code> significa que tenemos que especificar el
+módulo principal al llamar a la función. Especificar el módulo principal cuando
+llamar a la función deja en claro que la función no está definida localmente
+sin dejar de minimizar la repetición de la ruta completa. El código del Listado 7-13 es
+no está claro dónde está definido <code>add_to_waitlist</code></p>.
+
+<p><code>Por otro lado, al incorporar estructuras, enumeraciones y otros elementos con uso,</code>
+es idiomático especificar la ruta completa. El listado 7-14 muestra la forma idiomática
+para convertir la estructura <code>HashMap</code> de la biblioteca estándar en el ámbito de un binario
+caja.</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">use std::collections::HashMap;
+
+fn main() {
+    let mut map = HashMap::new();
+    map.insert(1, 2);
+}</code></pre></pre>
+
+<p><span class="caption">Listado 7-14: Poner <code>HashMap</code> al alcance de la mano de un
+manera idiomática</span></p>
+
+<p>No hay una razón sólida detrás de este modismo: es solo la convención la que ha
+surgió, y la gente se ha acostumbrado a leer y escribir el código de Rust de esta manera</p>.
+
+<p>La excepción a esta expresión es si traemos dos artículos con el mismo nombre
+dentro del ámbito de las declaraciones de <code>uso</code>, porque Rust no lo permite. Listado 7-15
+muestra cómo incluir en el ámbito dos tipos de <code>resultados</code> que tienen el mismo nombre pero
+diferentes módulos principales y cómo hacer referencia a ellos.</p>
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust noplayground">use std::fmt;
+use std::io;
+
+fn function1() -&gt; fmt::Result {
+    // --snip--
+<span class="boring">    Ok(())
+</span>}
+
+fn function2() -&gt; io::Result&lt;()&gt; {
+    // --snip--
+<span class="boring">    Ok(())
+</span>}</code></pre>
+
+<p><span class="caption">Listado 7-15: Incluir dos tipos con el mismo nombre en
+el mismo ámbito requiere el uso de sus módulos principales</span></p>.
+
+<p>Como puede ver, el uso de los módulos principales distingue los dos tipos de <code>resultados</code>.
+Si, en cambio, especificamos <code>usar std: :fmt: :Result</code> y <code>usamos std: :io: :Result</code>,
+tenemos dos tipos de <code>resultados</code> en el mismo ámbito y Rust no sabría cuál somos
+es decir, cuando usamos <code>Result</code>.</p>
+
+<h3 id="providing-new-names-with-the-as-keyword"><a class="header" href="#providing-new-names-with-the-as-keyword">Proporcionar nombres nuevos con la palabra clave <code>as</code></a></h3>
+
+<p>Hay otra solución al problema de traer dos tipos del mismo nombre.
+en el mismo ámbito con el <code>uso</code>: después de la ruta, podemos especificar <code>como</code> y una nueva
+nombre local, o <em>alias</em>, para el tipo. El listado 7-16 muestra otra forma de escribir
+</p><code>el código del Listado 7-15 cambiando el nombre de uno de los dos tipos de <code>resultados usando as</code>.</code>
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust noplayground">use std::fmt::Result;
+use std::io::Result as IoResult;
+
+fn function1() -&gt; Result {
+    // --snip--
+<span class="boring">    Ok(())
+</span>}
+
+fn function2() -&gt; IoResult&lt;()&gt; {
+    // --snip--
+<span class="boring">    Ok(())
+</span>}</code></pre>
+
+<p><span class="caption">Listado 7-16: Cambiar el nombre de un tipo cuando se introduce
+<code>alcance con la palabra clave as</code></span></p>
+
+<p>En la segunda sentencia de <code>uso</code>, elegimos el nuevo nombre <code>IOResult</code> para el
+<code>tipo <code>std: :io: :Result</code>, que no entrará en conflicto con el <code>resultado de std: :fmt</code></code>
+que también hemos incluido en nuestro alcance. El Listado 7-15 y el Listado 7-16 son
+considerado idiomático, ¡así que la elección depende de ti!</p>
+
+<h3 id="re-exporting-names-with-pub-use"><a class="header" href="#re-exporting-names-with-pub-use">Reexportación de nombres con uso de <code>pub</code></a></h3>
+
+<p>Cuando incluimos un nombre en el ámbito de aplicación con la palabra clave <code>use</code>, el nombre disponible en
+el nuevo ámbito es privado. Para permitir que el código que llama a nuestro código haga referencia a
+ese nombre como si se hubiera definido en el ámbito de ese código, podemos combinar <code>pub</code>
+y <code>usar</code>. Esta técnica se llama <em>reexportación</em> porque estamos trayendo
+incluir un elemento en el ámbito de aplicación, pero también hacer que ese elemento esté disponible para que otros lo incluyan
+su ámbito de aplicación.</p>
+
+El <p>Listado 7-17 muestra el código del Listado 7-11 con <code>su uso</code> en el módulo raíz
+cambiado al uso del <code>pub</code></p>.
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust noplayground test_harness">mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+    }
+}
+
+pub use crate::front_of_house::hosting;
+
+pub fn eat_at_restaurant() {
+    hosting::add_to_waitlist();
+}</code></pre>
+
+<p><span class="caption">Listado 7-17: Hacer que un nombre esté disponible para que lo use cualquier código
+desde un nuevo ámbito con uso en <code>publicaciones</code></span></p>
+
+<p>Antes de este cambio, el código externo tendría que llamar a <code>add_to_waitlist</code>
+funciona usando la ruta
+<code>restaurant: :front_of_house: :hosting: :add_to_waitlist</code> (). <code>Ahora que este usuario del <code>pub ha vuelto a exportar el módulo de alojamiento desde el módulo raíz, código</code> externo</code>
+ahora puede usar la ruta <code>restaurant: :hosting: :add_to_waitlist</code></p> () en su lugar.
+
+La <p>reexportación es útil cuando la estructura interna del código es diferente
+de la forma en que los programadores que llaman a tu código pensarían sobre el dominio. ¿Para
+Por ejemplo, en esta metáfora del restaurante, la gente que dirige el restaurante piensa
+acerca de «la parte delantera de la casa» y «la parte trasera de la casa». Pero los clientes que visitan un restaurante
+probablemente no pensarán en las partes del restaurante en esos términos. ¿Con
+<code>pub use</code>, podemos escribir nuestro código con una estructura pero exponer una diferente
+estructura. Al hacerlo, nuestra biblioteca está bien organizada para los programadores que trabajan en
+la biblioteca y los programadores que llaman a la biblioteca. Vamos a ver otro ejemplo
+sobre el <code>uso de los pubs</code> y cómo afecta a la documentación de su caja en la sección <a href="ch14-02-publishing-to-crates-io.html#exporting-a-convenient-public-api-with-pub-use">«Exportar un
+Práctica <!-- ignore --> sección «API pública con <code>uso de pubs</code>»</a> de
+Capítulo 14.</p>
+
+<h3 id="using-external-packages"><a class="header" href="#using-external-packages">Uso de paquetes externos</a></h3>
+
+<p>En el capítulo 2, programamos un proyecto de juego de adivinanzas que utilizaba un juego externo
+paquete llamado <code>rand</code> para obtener números aleatorios. Para usar <code>rand</code> en nuestro proyecto,
+agregamos esta línea a <em>Cargo.toml</em></p>:
+
+
+
+<p><span class="filename">Nombre del archivo: Cargo.toml</span></p>
+
+<pre><code class="language-toml">rand = "0.8.5"
+</code></pre>
+
+<p>Agregar <code>rand</code> como dependencia en <em>Cargo.toml le indica a Cargo</em> que descargue el
+El paquete <code>rand</code> y cualquier dependencia de crates.io y<a href="https://crates.io/"></a>
+haga que <code>Rand</code> esté disponible</p> para nuestro proyecto.
+
+<p>Luego, para incluir las definiciones de <code>rand</code> en el alcance de nuestro paquete, agregamos un
+<code>utilizamos</code> una línea que comience con el nombre de la caja, la <code>marca</code> y enumeremos los artículos
+queríamos incluirlo en el ámbito de aplicación. Recuerde que en la sección <a href="ch02-00-guessing-game-tutorial.html#generating-a-random-number">«Generando un azar»
+En <!-- ignore --> la sección «Número»</a> del capítulo 2, incluimos el rasgo <code>Rng</code>
+entró en el ámbito de aplicación y la denominó función <code>rand: :thread_rng</code></p>:
+
+<pre><code class="language-rust ignore"><span class="boring">use std::io;
+</span>use rand::Rng;
+
+fn main() {
+<span class="boring">    println!("Guess the number!");
+</span><span class="boring">
+</span>    let secret_number = rand::thread_rng().gen_range(1..=100);
+<span class="boring">
+</span><span class="boring">    println!("The secret number is: {secret_number}");
+</span><span class="boring">
+</span><span class="boring">    println!("Please input your guess.");
+</span><span class="boring">
+</span><span class="boring">    let mut guess = String::new();
+</span><span class="boring">
+</span><span class="boring">    io::stdin()
+</span><span class="boring">        .read_line(&amp;mut guess)
+</span><span class="boring">        .expect("Failed to read line");
+</span><span class="boring">
+</span><span class="boring">    println!("You guessed: {guess}");
+</span>}</code></pre>
+
+<p>Los miembros de la comunidad de Rust han puesto a disposición muchos paquetes en
+<a href="https://crates.io/">crates.io</a>, e incorporando cualquiera de ellos a tu paquete
+<em>implica los mismos pasos: incluirlos en el archivo Cargo.toml de su paquete y</em>
+<code>utilizándolos</code> para llevar objetos de sus cajas al alcance.</p>
+
+<p>Tenga en cuenta que <code>la</code> biblioteca estándar estándar también es una caja externa a nuestra
+paquete. Como la biblioteca estándar viene con el lenguaje Rust,
+<code>no es necesario cambiar <em>Cargo.toml</em> para incluir std.</code> Pero sí necesitamos referirnos a
+lo <code>utilizamos</code> para llevar artículos de allí al alcance de nuestro paquete. Por ejemplo,
+con <code>HashMap</code> usaríamos esta línea</p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::collections::HashMap;
+<span class="boring">}</span></code></pre></pre>
+
+<p>Esta es una ruta absoluta que comienza con <code>std</code>, el nombre de la biblioteca estándar
+caja.</p>
+
+<h3 id="using-nested-paths-to-clean-up-large-use-lists"><a class="header" href="#using-nested-paths-to-clean-up-large-use-lists">Uso de rutas anidadas para limpiar grandes listas de <code>uso</code></a></h3>
+
+<p>Si utilizamos varios elementos definidos en la misma caja o el mismo módulo,
+publicar cada artículo en su propia línea puede ocupar mucho espacio vertical en nuestra
+archivos. Por ejemplo, estos dos <code>usan</code> afirmaciones que teníamos en el juego de adivinanzas en
+Los listados 2 a 4 incluyen los elementos del <code>estándar</code> en su alcance</p>:
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><code class="language-rust ignore"><span class="boring">use rand::Rng;
+</span>// --snip--
+use std::cmp::Ordering;
+use std::io;
+// --snip--
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    println!("Guess the number!");
+</span><span class="boring">
+</span><span class="boring">    let secret_number = rand::thread_rng().gen_range(1..=100);
+</span><span class="boring">
+</span><span class="boring">    println!("The secret number is: {secret_number}");
+</span><span class="boring">
+</span><span class="boring">    println!("Please input your guess.");
+</span><span class="boring">
+</span><span class="boring">    let mut guess = String::new();
+</span><span class="boring">
+</span><span class="boring">    io::stdin()
+</span><span class="boring">        .read_line(&amp;mut guess)
+</span><span class="boring">        .expect("Failed to read line");
+</span><span class="boring">
+</span><span class="boring">    println!("You guessed: {guess}");
+</span><span class="boring">
+</span><span class="boring">    match guess.cmp(&amp;secret_number) {
+</span><span class="boring">        Ordering::Less =&gt; println!("Too small!"),
+</span><span class="boring">        Ordering::Greater =&gt; println!("Too big!"),
+</span><span class="boring">        Ordering::Equal =&gt; println!("You win!"),
+</span><span class="boring">    }
+</span><span class="boring">}</span></code></pre>
+
+<p>En su lugar, podemos usar rutas anidadas para incluir los mismos elementos en un solo campo
+línea. Para ello, especificamos la parte común de la ruta, seguida de dos
+dos puntos y, a continuación, corchetes alrededor de una lista de las partes de las rutas que
+difieren, como se muestra en el Listado 7-18</p>.
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><code class="language-rust ignore"><span class="boring">use rand::Rng;
+</span>// --snip--
+use std::{cmp::Ordering, io};
+// --snip--
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    println!("Guess the number!");
+</span><span class="boring">
+</span><span class="boring">    let secret_number = rand::thread_rng().gen_range(1..=100);
+</span><span class="boring">
+</span><span class="boring">    println!("The secret number is: {secret_number}");
+</span><span class="boring">
+</span><span class="boring">    println!("Please input your guess.");
+</span><span class="boring">
+</span><span class="boring">    let mut guess = String::new();
+</span><span class="boring">
+</span><span class="boring">    io::stdin()
+</span><span class="boring">        .read_line(&amp;mut guess)
+</span><span class="boring">        .expect("Failed to read line");
+</span><span class="boring">
+</span><span class="boring">    let guess: u32 = guess.trim().parse().expect("Please type a number!");
+</span><span class="boring">
+</span><span class="boring">    println!("You guessed: {guess}");
+</span><span class="boring">
+</span><span class="boring">    match guess.cmp(&amp;secret_number) {
+</span><span class="boring">        Ordering::Less =&gt; println!("Too small!"),
+</span><span class="boring">        Ordering::Greater =&gt; println!("Too big!"),
+</span><span class="boring">        Ordering::Equal =&gt; println!("You win!"),
+</span><span class="boring">    }
+</span><span class="boring">}</span></code></pre>
+
+<p><span class="caption">Listado 7-18: Especificar una ruta anidada para traer varios
+elementos con el mismo prefijo</span></p> en el ámbito
+
+<p>En programas más grandes, poner muchos objetos en el alcance de la misma caja o
+<code>El uso de rutas anidadas en un módulo puede reducir la cantidad de instrucciones de uso independientes</code>
+¡Son muchos los que lo necesitan</p>!
+
+<p>Podemos usar una ruta anidada en cualquier nivel de una ruta, lo cual es útil a la hora de combinar
+dos instrucciones de <code>uso</code> que comparten una subruta. Por ejemplo, el Listado 7-19 muestra dos
+<code>usa</code> sentencias: una que incluye <code>std: :io</code> dentro del alcance y otra que trae
+<code>std: :io: :Escribe</code></p> dentro del alcance.
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust noplayground">use std::io;
+use std::io::Write;</code></pre>
+
+<p><span class="caption">Listado 7-19: Dos sentencias de <code>uso</code> donde una es una subruta
+</span></p>de la otra
+
+<p>La parte común de estas dos rutas es <code>std: :io</code>, y esa es la primera ruta completa
+ruta. Para combinar estas dos rutas en una declaración de <code>uso</code>, podemos usar <code>self</code> in
+la ruta anidada, como se muestra en el Listado 7-20</p>.
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust noplayground">use std::io::{self, Write};</code></pre>
+
+<p><span class="caption">Listado 7-20: Combinando las rutas del Listado 7-19 en
+<code>declaración de un solo uso</code></span></p>
+
+<p>Esta línea incluye <code>std: :io y std: :io</code><code>: :Write</code> en el ámbito de aplicación.</p>
+
+<h3 id="the-glob-operator"><a class="header" href="#the-glob-operator">El operador global</a></h3>
+
+<p>Si queremos incluir <em>todos</em> los elementos públicos definidos en una ruta dentro del alcance, podemos
+especificar esa ruta seguida por el operador global <code>*</code></p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::collections::*;
+<span class="boring">}</span></code></pre></pre>
+
+<p>Esta declaración de <code>uso</code> reúne todos los elementos públicos definidos en <code>std: :collections</code> en
+el alcance actual. ¡Tenga cuidado al usar el operador global! Glob puede hacerlo
+es más difícil saber qué nombres están dentro del alcance y dónde se usa un nombre en su programa
+estaba definido.</p>
+
+<p>El operador global se usa a menudo cuando se realizan pruebas para poner todo bajo prueba
+en el módulo de <code>pruebas</code>; hablaremos de eso en la sección <a href="ch11-01-writing-tests.html#how-to-write-tests">«Cómo escribir
+En <!-- ignore --> la sección Pruebas»</a> del capítulo 11. El operador global
+<a href="../std/prelude/index.html#other-preludes">también se usa a veces como parte del patrón de preludio: consulte la norma
+documentación de la biblioteca</a> <!-- ignore -->
+para obtener más información sobre ese patrón.</p>

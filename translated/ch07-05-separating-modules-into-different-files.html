@@ -1,0 +1,128 @@
+
+
+<h2 id="separating-modules-into-different-files"><a class="header" href="#separating-modules-into-different-files">Separar los módulos en diferentes archivos</a></h2>
+
+<p>Hasta ahora, todos los ejemplos de este capítulo definían varios módulos en un archivo.
+Cuando los módulos sean más grandes, es posible que desee mover sus definiciones a otro
+archivo para facilitar la navegación por el código.</p>
+
+<p>Por ejemplo, comencemos con el código del Listado 7-17 que tenía múltiples
+módulos de restaurantes. Extraeremos los módulos en archivos en lugar de tener todos los
+módulos definidos en el archivo raíz de la caja. En este caso, el archivo raíz de la caja es
+<em>src/lib.rs</em>, pero este procedimiento también funciona con cajas binarias cuya raíz
+el archivo es <em>src/main.rs</em></p>.
+
+<p>Primero, extraeremos el módulo <code>front_of_house</code> a su propio archivo. Elimine el
+código entre corchetes para el módulo <code>front_of_house</code>, dejando solo
+<em>la declaración <code>mod front_of_house</code>;, de modo que src/lib.rs contenga el código</em>
+mostrado en el Listado 7-21. Tenga en cuenta que esto no se compilará hasta que creemos el
+<em>El archivo src/front_of_house.rs</em></p> del Listado 7-22.
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust ignore does_not_compile">mod front_of_house;
+
+pub use crate::front_of_house::hosting;
+
+pub fn eat_at_restaurant() {
+    hosting::add_to_waitlist();
+}</code></pre>
+
+<p><span class="caption">Listado 7-21: Declarar el módulo <code>front_of_house cuyo</code>
+<em>el cuerpo estará en src/front_of_house.rs</em></span></p>
+
+<p>A continuación, coloca el código que estaba entre corchetes en un nuevo archivo llamado
+<em>src/front_of_house.rs</em>, como se muestra en el Listado 7-22. El compilador sabe buscar
+en este archivo porque encontró la declaración del módulo en la raíz de la caja
+con el nombre <code>front_of_house</code></p>.
+
+<p><span class="filename">Nombre de archivo: src/front_of_house.rs</span></p>
+
+<pre><code class="language-rust ignore">pub mod hosting {
+    pub fn add_to_waitlist() {}
+}</code></pre>
+
+<p><span class="caption"><code>Listado 7-22: Definiciones dentro del frente de la casa</code>
+módulo en <em>src/front_of_house.rs</em></span></p>
+
+<p>Ten en cuenta que solo necesitas cargar un archivo mediante una declaración de <code>modificación</code> <em>una vez</em> en tu
+árbol de módulos. Una vez que el compilador sabe que el archivo es parte del proyecto (y sabe
+<code>en qué parte del árbol de módulos reside el código debido a dónde has colocado el mod</code>
+declaración), otros archivos de tu proyecto deben hacer referencia al código del archivo cargado
+utilizando una ruta al lugar donde se declaró, tal y como se explica en la sección <a href="ch07-03-paths-for-referring-to-an-item-in-the-module-tree.html">«Rutas de referencia»
+a un elemento del árbol de módulos <!-- ignore -->»</a>. En otras palabras,
+el <code>mod</code> <em>no</em> es una operación de «inclusión» que hayas visto en otras
+lenguajes de programación.</p>
+
+<p>A continuación, extraeremos el módulo de <code>alojamiento</code> en su propio archivo. El proceso es un poco
+diferente porque el <code>alojamiento</code> es un módulo secundario de <code>front_of_house</code>, no del
+módulo raíz. Colocaremos el archivo para <code>hospedarlo</code> en un nuevo directorio que será
+lleva el nombre de sus antecesores en el árbol de módulos, en este caso <em>src/front_of_house/</em></p>.
+
+<p>Para empezar a mover el <code>alojamiento</code>, cambiamos <em>src/front_of_house.rs</em> para que contenga solo el
+declaración del módulo de <code>alojamiento</code></p>:
+
+<p><span class="filename">Nombre de archivo: src/front_of_house.rs</span></p>
+
+<pre><code class="language-rust ignore">pub mod hosting;</code></pre>
+
+<p><em>Luego creamos un directorio <em>src/front_of_house</em> y un archivo hosting.rs para</em>
+</p><code>contienen las definiciones realizadas en el módulo de alojamiento:</code>
+
+<p><span class="filename">Nombre de archivo: src/front_of_house/hosting.rs</span></p>
+
+<pre><code class="language-rust ignore">pub fn add_to_waitlist() {}</code></pre>
+
+<p>Si, en cambio, colocamos <em>hosting.rs</em> en el directorio <em>src</em>, el compilador
+<code>espere que el código <em>hosting.rs</em> esté en un módulo de alojamiento declarado en la caja</code>
+<code>root y no está declarado como elemento secundario del módulo front_of_house.</code> El
+las reglas del compilador sobre qué archivos comprobar el código de qué módulos significan
+los directorios y archivos coinciden más con el árbol de módulos</p>.
+
+<blockquote>
+<h3 id="alternate-file-paths"><a class="header" href="#alternate-file-paths">Rutas de archivo alternativas</a></h3>
+<p>Hasta ahora hemos cubierto las rutas de archivo más idiomáticas que usa el compilador de Rust,
+pero Rust también admite un estilo anterior de ruta de archivo. Para un módulo llamado
+<code>front_of_house</code> declarado en la raíz de la caja, el compilador buscará el
+el código del módulo en</p>:
+<ul>
+<li>
+<em>src/front_of_house.rs</em></li> (lo que cubrimos)
+<li>
+<em>src/front_of_house/mod.rs</em></li></ul> (estilo anterior, ruta aún compatible)
+<p><code><code>Para un módulo llamado hosting que sea un submódulo de front_of_house, el</code></code>
+el compilador buscará el código</p> del módulo en:
+<ul>
+<li>
+<em>src/front_of_house/hosting.rs</em></li> (lo que cubrimos)
+<li>
+<em>src/front_of_house/hosting/mod.rs</em></li></ul> (estilo anterior, ruta aún compatible)
+<p>Si usas ambos estilos para el mismo módulo, obtendrás un error de compilación. Usando
+se permite una combinación de ambos estilos para diferentes módulos del mismo proyecto, pero
+puede resultar confuso para las personas que navegan por tu proyecto</p>.
+<p>La principal desventaja del estilo que usa archivos llamados <em>mod.rs</em> es que tu
+el proyecto puede terminar con muchos archivos llamados <em>mod.rs</em>, lo que puede resultar confuso
+cuando los tienes abiertos en tu editor al mismo tiempo</p>. </blockquote>
+
+<p>Hemos trasladado el código de cada módulo a un archivo independiente y el árbol de módulos permanece
+lo mismo. Las llamadas a funciones en <code>eat_at_restaurant</code> funcionarán sin ninguna
+modificación, a pesar de que las definiciones se encuentran en archivos diferentes. Esto
+Esta técnica le permite mover los módulos a nuevos archivos a medida que aumentan de tamaño.</p>
+
+<p>Tenga en cuenta que el <code>pub usa la declaración crate: :front_of_house</code>: :hosting en
+<em>src/lib.rs</em> <code>tampoco ha cambiado, ni el uso tiene ningún impacto en los archivos</code>
+se compilan como parte de la caja. La palabra clave <code>mod</code> declara módulos y Rust
+busca en un archivo con el mismo nombre que el módulo el código que contiene
+ese módulo.</p>
+
+<h2 id="summary"><a class="header" href="#summary">Resumen</a></h2>
+
+<p>Rust te permite dividir un paquete en varias cajas y una caja en módulos
+para que pueda hacer referencia a los elementos definidos en un módulo desde otro módulo. Puedes hacer
+esto especificando rutas absolutas o relativas. Estas rutas se pueden incorporar a
+alcance con una declaración de <code>uso</code> para que pueda usar una ruta más corta para varios usos de
+el elemento en ese ámbito. El código del módulo es privado de forma predeterminada, pero puedes hacer
+las definiciones son públicas añadiendo la palabra clave <code>pub</code>.</p>
+
+<p>En el siguiente capítulo, analizaremos algunas estructuras de datos de recopilación en
+biblioteca estándar que puedes usar en tu código perfectamente organizado</p>.

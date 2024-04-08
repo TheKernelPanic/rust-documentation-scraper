@@ -1,0 +1,354 @@
+
+
+<h2 id="functions"><a class="header" href="#functions">Funciones</a></h2>
+
+<p>Las funciones prevalecen en el código de Rust. Ya has visto uno de los más
+funciones importantes del idioma: la función <code>principal</code>, que es la entrada
+punto de muchos programas. También has visto la palabra clave <code>fn</code>, que te permite
+declarar nuevas funciones.</p>
+
+<p>El código de Rust usa el <em>caso de serpiente</em> como estilo convencional para la función y la variable
+nombres, en los que todas las letras están en minúscula y subrayan palabras separadas.
+Este es un programa que contiene un ejemplo</p> de definición de función:
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    println!("Hello, world!");
+
+    another_function();
+}
+
+fn another_function() {
+    println!("Another function.");
+}</code></pre></pre>
+
+<p>Definimos una función en Rust introduciendo <code>fn</code> seguido de un nombre de función y un
+conjunto de paréntesis. Los corchetes indican al compilador dónde se encuentra la función
+el cuerpo comienza y termina.</p>
+
+<p>Podemos llamar a cualquier función que hayamos definido introduciendo su nombre seguido de un conjunto
+de paréntesis. Dado que <code>another_function</code> está definida en el programa, puede ser
+llamado desde dentro de la función <code>principal</code>. Tenga en cuenta que hemos definido <code>another_function</code>
+<em>después de</em> la función <code>principal</code> en el código fuente; podríamos haberla definido antes
+también. A Rust no le importa dónde definas tus funciones, solo que estén
+definido en algún lugar de un ámbito que pueda ver la persona que llama.</p>
+
+<p>Comencemos un nuevo proyecto binario llamado <em>functions</em> para explorar funciones
+más lejos. Coloque el ejemplo de <code>another_function</code> en <em>src/main.rs</em> y ejecútelo. Tú
+debería ver el siguiente resultado:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.28s
+     Running `target/debug/functions`
+Hello, world!
+Another function.
+</code></pre>
+
+<p>Las líneas se ejecutan en el orden en que aparecen en la función <code>principal</code>.
+Primero el «¡Hola, mundo!» se imprime el mensaje y, a continuación, se llama a <code>another_function</code>
+y se imprime su mensaje</p>.
+
+<h3 id="parameters"><a class="header" href="#parameters">Parámetros</a></h3>
+
+<p>Podemos definir funciones para que tengan <em>parámetros</em>, que son variables especiales que
+son parte de la firma de una función. Cuando una función tiene parámetros, puedes
+proporcionarle valores concretos para esos parámetros. Técnicamente, el hormigón
+los valores se denominan <em>argumentos</em>, pero en una conversación casual, la gente tiende a usar
+las palabras <em>parámetro</em> y <em>argumento</em> indistintamente para cualquiera de las variables
+en la definición de una función o en los valores concretos que se transfieren cuando se llama a
+función.</p>
+
+<p>En esta versión de <code>another_function</code> agregamos un parámetro:</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    another_function(5);
+}
+
+fn another_function(x: i32) {
+    println!("The value of x is: {x}");
+}</code></pre></pre>
+
+<p>Intente ejecutar este programa; debería obtener el siguiente resultado:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.21s
+     Running `target/debug/functions`
+The value of x is: 5
+</code></pre>
+
+<p><code>La declaración de <code>another_function</code> tiene un parámetro llamado x.</code> El tipo de
+<code>x</code> se especifica como <code>i32</code>. Cuando pasamos <code>5</code> a <code>another_function</code>, el
+<code>¡imprimir!</code> <code>macro pone <code>5</code> donde estaba el par de corchetes que contenían x</code>
+en la cadena de formato.</p>
+
+<p>En las firmas de funciones, <em>debe</em> declarar el tipo de cada parámetro. Esto es
+una decisión deliberada en el diseño de Rust: requerir anotaciones de tipo en la función
+las definiciones significan que el compilador casi nunca necesita que las uses en otros lugares
+el código para averiguar a qué tipo te refieres. El compilador también es capaz de proporcionar
+mensajes de error más útiles si sabe qué tipos espera la función</p>.
+
+<p>Al definir varios parámetros, separe las declaraciones de parámetros con
+comas, como esta</p>:
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    print_labeled_measurement(5, 'h');
+}
+
+fn print_labeled_measurement(value: i32, unit_label: char) {
+    println!("The measurement is: {value}{unit_label}");
+}</code></pre></pre>
+
+<p>Este ejemplo crea una función denominada <code>print_labeled_measurement</code> con dos
+parámetros. El primer parámetro se denomina <code>value</code> y es un <code>i32</code>. El segundo es
+<code>se llama <code>unit_label</code> y es de tipo char.</code> A continuación, la función imprime el texto que contiene
+tanto el <code>valor</code> como la <code>unit_label</code></p>.
+
+<p>Intentemos ejecutar este código. Sustituya el programa que se encuentra actualmente en sus <em>funciones</em>
+</p><code>el archivo <em>src/main.rs</em> del proyecto con el ejemplo anterior y ejecútelo usando cargo run:</code>
+
+<pre><code class="language-console">$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.31s
+     Running `target/debug/functions`
+The measurement is: 5h
+</code></pre>
+
+<p>Porque llamamos a la función con <code>5</code> como valor para el <code>valor</code> y <code>'h'</code> como
+el valor de <code>unit_label</code>, la salida del programa contiene esos</p> valores.
+
+<h3 id="statements-and-expressions"><a class="header" href="#statements-and-expressions">Declaraciones y expresiones</a></h3>
+
+<p>Los cuerpos de las funciones se componen de una serie de sentencias que, opcionalmente, terminan en
+expresión. Hasta ahora, las funciones que hemos descrito no han incluido un final
+expresión, pero has visto una expresión como parte de una declaración. Porque
+Rust es un lenguaje basado en expresiones, esta es una distinción importante para
+entender. Otros idiomas no tienen las mismas distinciones, así que veamos
+qué son los enunciados y expresiones y cómo sus diferencias afectan a los cuerpos
+de funciones.</p>
+
+<ul>
+<li>
+<strong>Las declaraciones</strong> son instrucciones que realizan alguna acción y no devuelven
+un valor.</li>
+<li>
+<strong>Las expresiones</strong> se evalúan con un valor resultante. Veamos algunos ejemplos</li>. </ul>
+
+<p>De hecho, ya hemos usado declaraciones y expresiones. Crear una variable y
+asignarle un valor con la palabra clave <code>let</code> es una sentencia. En el Listado 3-1,
+<code>let y = 6;</code> es una declaración.</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let y = 6;
+}</code></pre></pre>
+
+<p><span class="caption">Listado 3-1: Una declaración de función <code>principal</code> que contiene una declaración</span></p>
+
+<p>Las definiciones de funciones también son sentencias; todo el ejemplo anterior es un
+declaración en sí misma.</p>
+
+<p>Las declaraciones no devuelven valores. Por lo tanto, no puede asignar una sentencia <code>let</code>
+a otra variable, como intenta hacer el siguiente código; aparecerá un error:</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><code class="language-rust ignore does_not_compile">fn main() {
+    let x = (let y = 6);
+}</code></pre>
+
+<p>Cuando ejecutes este programa, el error que obtendrás será el siguiente:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+error: expected expression, found `let` statement
+ --&gt; src/main.rs:2:14
+  |
+2 |     let x = (let y = 6);
+  |              ^^^
+
+error: expected expression, found statement (`let`)
+ --&gt; src/main.rs:2:14
+  |
+2 |     let x = (let y = 6);
+  |              ^^^^^^^^^
+  |
+  = note: variable declaration using `let` is a statement
+
+error[E0658]: `let` expressions in this position are unstable
+ --&gt; src/main.rs:2:14
+  |
+2 |     let x = (let y = 6);
+  |              ^^^^^^^^^
+  |
+  = note: see issue #53667 &lt;https://github.com/rust-lang/rust/issues/53667&gt; for more information
+
+warning: unnecessary parentheses around assigned value
+ --&gt; src/main.rs:2:13
+  |
+2 |     let x = (let y = 6);
+  |             ^         ^
+  |
+  = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+  |
+2 -     let x = (let y = 6);
+2 +     let x = let y = 6;
+  |
+
+For more information about this error, try `rustc --explain E0658`.
+warning: `functions` (bin "functions") generated 1 warning
+error: could not compile `functions` due to 3 previous errors; 1 warning emitted
+</code></pre>
+
+<p>La sentencia <code>let y = 6</code> no devuelve ningún valor, por lo que no hay nada para
+<code>x</code> a la que vincular. Esto es diferente de lo que ocurre en otros idiomas, como
+C y Ruby, donde la tarea devuelve el valor de la tarea. En esos
+idiomas, puedes escribir <code>x = y = 6</code> y hacer que tanto <code>x</code> como <code>y</code> tengan el valor
+<code>6</code>; ese no es el caso en Rust.</p>
+
+<p>Las expresiones se evalúan como un valor y constituyen la mayor parte del resto del código que
+escribirás en Rust. Considera una operación matemática, como <code>5 + 6</code>, que es
+expresión que da como resultado el valor <code>11</code>. Las expresiones pueden formar parte de
+afirmaciones: en el Listado 3-1, el <code>6</code> de la sentencia <code>let y = 6;</code> es un
+expresión que da como resultado el valor <code>6</code>. Llamar a una función es un
+expresión. Llamar a una macro es una expresión. Un nuevo bloque de ámbito creado con
+Los corchetes son una expresión, por ejemplo</p>:
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let y = {
+        let x = 3;
+        x + 1
+    };
+
+    println!("The value of y is: {y}");
+}</code></pre></pre>
+
+<p>Esta expresión:</p>
+
+<pre><code class="language-rust ignore">{
+    let x = 3;
+    x + 1
+}</code></pre>
+
+<p>es un bloque que, en este caso, se evalúa como <code>4</code>. <code>Ese valor se vincula a y</code>
+como parte de la sentencia <code>let</code>. Tenga en cuenta que la línea <code>x + 1</code> no tiene un
+punto y coma al final, lo que no se parece a la mayoría de las líneas que has visto hasta ahora.
+Las expresiones no incluyen punto y coma al final. Si agrega un punto y coma al final
+de una expresión, la conviertes en una sentencia y, en ese caso, no devolverá un
+valor. Tenga esto en cuenta al explorar los valores devueltos y las expresiones de las funciones
+siguiente.</p>
+
+<h3 id="functions-with-return-values"><a class="header" href="#functions-with-return-values">Funciones con valores de retorno</a></h3>
+
+<p>Las funciones pueden devolver valores al código que las llama. No nombramos la devolución
+valores, pero debemos declarar su tipo después de una flecha (<code>-></code>). En Rust, el
+el valor de retorno de la función es sinónimo del valor final
+expresión en el bloque del cuerpo de una función. Puede regresar anticipadamente desde un
+funcionan utilizando la palabra clave <code>return</code> y especificando un valor, pero la mayoría
+las funciones devuelven la última expresión de forma implícita. Este es un ejemplo de
+función que devuelve un valor:</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn five() -&gt; i32 {
+    5
+}
+
+fn main() {
+    let x = five();
+
+    println!("The value of x is: {x}");
+}</code></pre></pre>
+
+<p>No hay llamadas a funciones, macros ni siquiera instrucciones <code>let</code> en los <code>cinco</code>
+función: solo el número <code>5</code> en sí mismo. Esa es una función perfectamente válida en
+Óxido. Tenga en cuenta que el tipo de retorno de la función también se especifica, como <code>-> i32</code>. Prueba
+ejecutando este código; el resultado debería tener este aspecto:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.30s
+     Running `target/debug/functions`
+The value of x is: 5
+</code></pre>
+
+<p>El <code>5</code> en <code>cinco</code> es el valor de retorno de la función, por lo que el tipo de retorno
+es <code>i32</code>. Vamos a examinar esto con más detalle. Hay dos partes importantes:
+primero, la línea <code>let x = five ();</code> muestra que estamos usando el valor de retorno de un
+función para inicializar una variable. Como la función <code>cinco</code> devuelve un <code>5</code>,
+esa línea es la misma que la siguiente:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let x = 5;
+<span class="boring">}</span></code></pre></pre>
+
+<p>En segundo lugar, la función <code>cinco</code> no tiene parámetros y define el tipo de
+devuelve el valor, pero el cuerpo de la función es un <code>5</code> solitario sin punto y coma
+porque es una expresión cuyo valor queremos devolver</p>.
+
+<p>Veamos otro ejemplo:</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let x = plus_one(5);
+
+    println!("The value of x is: {x}");
+}
+
+fn plus_one(x: i32) -&gt; i32 {
+    x + 1
+}</code></pre></pre>
+
+<p>Al ejecutar este código, se imprimirá <code>El valor de x es: 6</code>. Pero si colocamos un
+punto y coma al final de la línea que contiene <code>x + 1</code>, cambiándola de
+expresión a una sentencia, obtendremos un error</p>:
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><code class="language-rust ignore does_not_compile">fn main() {
+    let x = plus_one(5);
+
+    println!("The value of x is: {x}");
+}
+
+fn plus_one(x: i32) -&gt; i32 {
+    x + 1;
+}</code></pre>
+
+<p>Al compilar este código se produce el siguiente error:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+error[E0308]: mismatched types
+ --&gt; src/main.rs:7:24
+  |
+7 | fn plus_one(x: i32) -&gt; i32 {
+  |    --------            ^^^ expected `i32`, found `()`
+  |    |
+  |    implicitly returns `()` as its body has no tail or `return` expression
+8 |     x + 1;
+  |          - help: remove this semicolon to return this value
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `functions` due to previous error
+</code></pre>
+
+<p>El mensaje de error principal, <code>tipos no coincidentes</code>, revela el problema principal con esto
+código. La definición de la función <code>plus_one</code> dice que devolverá un
+<code>i32</code><code>, pero las sentencias no evalúan un valor, que se expresa mediante (),</code>
+el tipo de unidad. Por lo tanto, no se devuelve nada, lo que contradice la función
+definición y produce un error. En este resultado, Rust envía un mensaje a
+posiblemente ayude a solucionar este problema: sugiere eliminar el punto y coma, que
+solucionaría el error</p>.

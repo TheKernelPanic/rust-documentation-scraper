@@ -1,0 +1,300 @@
+
+
+<h2 id="storing-keys-with-associated-values-in-hash-maps"><a class="header" href="#storing-keys-with-associated-values-in-hash-maps">Almacenamiento de claves con valores asociados en mapas hash</a></h2>
+
+<p>La última de nuestras colecciones comunes es el <em>mapa hash</em>. El tipo <code>HashMap</code> <K, V>
+almacena un mapeo de claves de tipo <code>K</code> a valores de tipo <code>V</code> usando un
+<em>función de hash</em>, que determina cómo coloca estas claves y valores en
+memoria. Muchos lenguajes de programación admiten este tipo de estructura de datos, pero
+suelen utilizar un nombre diferente, como hash, map, object, hash table,
+diccionario o matriz asociativa, solo por nombrar algunos</p>.
+
+<p>Los mapas hash son útiles cuando quieres buscar datos sin usar un índice, ya que
+puedes hacerlo con vectores, pero usando una clave que puede ser de cualquier tipo. Por ejemplo,
+en un juego, puedes hacer un seguimiento de la puntuación de cada equipo en un mapa hash en el que
+cada clave es el nombre de un equipo y los valores son la puntuación de cada equipo. Dado un equipo
+nombre, puedes recuperar su puntuación.</p>
+
+<p>Repasaremos la API básica de los mapas hash en esta sección, pero también veremos muchas más cosas
+se esconden en las funciones definidas en <code>HashMap</code> <K, V> por la biblioteca estándar.
+Como siempre, consulta la documentación de la biblioteca estándar para obtener más información</p>.
+
+<h3 id="creating-a-new-hash-map"><a class="header" href="#creating-a-new-hash-map">Creación de un nuevo mapa hash</a></h3>
+
+<p>Una forma de crear un mapa hash vacío es usar elementos <code>nuevos</code> y agregar elementos con
+<code>insertar</code>. En el Listado 8-20, estamos haciendo un seguimiento de los puntajes de dos equipos cuyos
+los nombres son <em>azul</em> y <em>amarillo.</em> El equipo azul comienza con 10 puntos, y el
+El equipo amarillo comienza con 50.</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    use std::collections::HashMap;
+
+    let mut scores = HashMap::new();
+
+    scores.insert(String::from("Blue"), 10);
+    scores.insert(String::from("Yellow"), 50);
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 8-20: Crear un nuevo mapa hash e insertar algunos
+claves y valores</span></p>
+
+<p>Tenga en cuenta que primero debemos <code>usar</code> el <code>HashMap</code> de la parte de colecciones de
+la biblioteca estándar. De nuestras tres colecciones comunes, esta es la menor
+se usa con frecuencia, por lo que no está incluida en las funciones incluidas
+automáticamente en el preludio. Los mapas hash también tienen menos soporte por parte del
+biblioteca estándar; no hay ninguna macro integrada para construirlos, por ejemplo.</p>
+
+<p>Al igual que los vectores, los mapas hash almacenan sus datos en el montón. Este <code>HashMap tiene</code>
+claves de tipo <code>String</code> y valores de tipo <code>i32</code>. Al igual que los vectores, los mapas hash son
+homogéneo: todas las claves deben ser del mismo tipo entre sí y todas
+los valores deben ser del mismo tipo.</p>
+
+<h3 id="accessing-values-in-a-hash-map"><a class="header" href="#accessing-values-in-a-hash-map">Acceso a los valores en un mapa hash</a></h3>
+
+<p>Podemos obtener un valor del mapa hash proporcionando su clave para el <code>get</code>
+método, como se muestra en el Listado 8-21</p>.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    use std::collections::HashMap;
+
+    let mut scores = HashMap::new();
+
+    scores.insert(String::from("Blue"), 10);
+    scores.insert(String::from("Yellow"), 50);
+
+    let team_name = String::from("Blue");
+    let score = scores.get(&amp;team_name).copied().unwrap_or(0);
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 8-21: Acceso al marcador para el equipo azul
+almacenado en el mapa hash</span></p>
+
+<p>Aquí, la <code>puntuación</code> tendrá el valor asociado al equipo azul y el
+el resultado será <code>10</code>. El método <code>get</code> devuelve una <code>opción <&V></code>; si no hay
+<code>valor para esa clave en el mapa hash, <code>get</code> devolverá None.</code> Este programa
+maneja la <code>opción</code> llamando a <code>copies</code> para obtener una <code>opción</code> <i32>en lugar de una
+<code>Option<&i32></code> <code><code>y, a continuación, <code>unwrap_or</code> para establecer la puntuación en cero si la puntuación no lo hace</code></code>
+tiene una entrada para la</p> clave.
+
+<p>Podemos iterar sobre cada par clave/valor en un mapa hash de manera similar a como
+</p><code>lo hacemos con vectores, usando un bucle foral:</code>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    use std::collections::HashMap;
+
+    let mut scores = HashMap::new();
+
+    scores.insert(String::from("Blue"), 10);
+    scores.insert(String::from("Yellow"), 50);
+
+    for (key, value) in &amp;scores {
+        println!("{key}: {value}");
+    }
+<span class="boring">}</span></code></pre></pre>
+
+<p>Este código imprimirá cada par en un orden arbitrario:</p>
+
+<pre><code class="language-text">Yellow: 50
+Blue: 10
+</code></pre>
+
+<h3 id="hash-maps-and-ownership"><a class="header" href="#hash-maps-and-ownership">Hash Maps y propiedad</a></h3>
+
+<p>Para los tipos que implementan el rasgo <code>Copy</code>, como <code>i32</code>, los valores se copian
+en el mapa hash. En el caso de valores propios, como <code>String</code>, los valores se moverán y
+el mapa hash será el propietario de esos valores, como se muestra en el Listado 8-22</p>.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    use std::collections::HashMap;
+
+    let field_name = String::from("Favorite color");
+    let field_value = String::from("Blue");
+
+    let mut map = HashMap::new();
+    map.insert(field_name, field_value);
+    // field_name and field_value are invalid at this point, try using them and
+    // see what compiler error you get!
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 8-22: Muestra que las claves y los valores son propiedad de
+el mapa hash una vez insertados</span></p>
+
+<p><code>No podemos usar las variables <code>field_name y field_value</code> después</code>
+</p><code>se han movido al mapa hash con la llamada a insertar.</code>
+
+<p>Si insertamos referencias a valores en el mapa hash, los valores no se moverán
+al mapa hash. Los valores a los que apuntan las referencias deben ser válidos en
+al menos mientras el mapa hash sea válido. Hablaremos más sobre estos temas en
+la sección <a href="ch10-03-lifetime-syntax.html#validating-references-with-lifetimes">«Validar referencias con
+La sección Lifetimes</a> en <!-- ignore -->
+Capítulo 10</p>.
+
+<h3 id="updating-a-hash-map"><a class="header" href="#updating-a-hash-map">Actualización de un mapa hash</a></h3>
+
+<p>Si bien el número de pares de clave y valor puede crecer, cada clave única puede
+solo tiene un valor asociado a la vez (pero no al revés: para
+Por ejemplo, tanto el equipo azul como el equipo amarillo podrían tener el valor 10 almacenado en
+el mapa hash de <code>puntuaciones</code>).</p>
+
+<p>Cuando desee cambiar los datos de un mapa hash, debe decidir cómo
+maneje el caso en el que una clave ya tenga un valor asignado. Puede reemplazar el
+valor antiguo por el nuevo valor, sin tener en cuenta por completo el valor anterior. Podrías
+mantener el valor anterior e ignorar el nuevo valor, añadiendo únicamente el nuevo valor si el
+la clave aún <em>no</em> tiene un valor. O puede combinar el valor anterior y el
+nuevo valor. ¡Veamos cómo hacer cada uno de estos!</p>
+
+<h4 id="overwriting-a-value"><a class="header" href="#overwriting-a-value">Sobrescribir un valor</a></h4>
+
+<p>Si insertamos una clave y un valor en un mapa hash y luego insertamos esa misma clave
+con un valor diferente, se reemplazará el valor asociado a esa clave.
+Aunque el código del Listado 8-23 llame a la <code>inserción</code> dos veces, el mapa hash sí
+solo contendrá un par clave/valor porque estamos insertando el valor del azul
+la clave del equipo en ambas ocasiones</p>.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    use std::collections::HashMap;
+
+    let mut scores = HashMap::new();
+
+    scores.insert(String::from("Blue"), 10);
+    scores.insert(String::from("Blue"), 25);
+
+    println!("{:?}", scores);
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 8-23: Reemplazar un valor almacenado por uno en particular
+clave</span></p>
+
+<p>Este código imprimirá <code>{"Blue»: 25}</code>. El valor original de <code>10</code> ha sido
+sobrescrito</p>.
+
+
+
+<p><a id="only-inserting-a-value-if-the-key-has-no-value"></a></p>
+
+<h4 id="adding-a-key-and-value-only-if-a-key-isnt-present"><a class="header" href="#adding-a-key-and-value-only-if-a-key-isnt-present">Agregar una clave y un valor solo si no hay una clave</a></h4>
+
+<p>Es común comprobar si una clave en particular ya existe en el mapa hash
+con un valor, realiza las siguientes acciones: si la clave existe en el hash
+mapa, el valor existente debe permanecer como está. Si la clave no existe,
+insértela junto con un valor para ella.</p>
+
+<p>Los mapas hash tienen una API especial para esta <code>entrada</code> llamada que toma la clave que tú
+quieres comprobar como parámetro. El valor de retorno del método de <code>entrada</code> es una enumeración
+denominada <code>Entry</code> que representa un valor que puede existir o no. Digamos
+queremos comprobar si la clave del equipo amarillo tiene un valor asociado
+con ella. Si no es así, queremos insertar el valor 50, y lo mismo para
+Equipo azul. Al usar la API de <code>entrada</code>, el código se parece al Listado 8-24</p>.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    use std::collections::HashMap;
+
+    let mut scores = HashMap::new();
+    scores.insert(String::from("Blue"), 10);
+
+    scores.entry(String::from("Yellow")).or_insert(50);
+    scores.entry(String::from("Blue")).or_insert(50);
+
+    println!("{:?}", scores);
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 8-24: Uso del método <code>de entrada</code> para insertar solo si
+la clave aún no tiene un valor</span></p>
+
+<p>El método <code>or_insert</code> en <code>Entry</code> se define para devolver una referencia mutable a
+el valor de la clave de <code>entrada</code> correspondiente si esa clave existe y, de no ser así,
+inserta el parámetro como el nuevo valor de esta clave y devuelve un valor mutable
+referencia al nuevo valor. Esta técnica es mucho más limpia que escribir el
+nosotros mismos somos lógicos y, además, funciona mejor con el corrector de préstamos</p>.
+
+<p>Al ejecutar el código del Listado 8-24, se imprimirá <code>{"Yellow»: 50, «Blue»: 10}</code>. El
+la primera llamada <code>a</code> participar insertará la clave del equipo amarillo con el valor
+50 porque el equipo amarillo aún no tiene un valor. La segunda llamada a
+<code>la entrada</code> no cambiará el mapa hash porque el equipo azul ya tiene el
+valor 10.</p>
+
+<h4 id="updating-a-value-based-on-the-old-value"><a class="header" href="#updating-a-value-based-on-the-old-value">Actualización de un valor basado en el valor anterior</a></h4>
+
+<p>Otro caso de uso común de los mapas hash es buscar el valor de una clave y luego
+actualízalo según el valor anterior. Por ejemplo, el Listado 8-25 muestra un código que
+cuenta cuántas veces aparece cada palabra en un texto. Usamos un mapa hash con
+las palabras como claves e incrementamos el valor para hacer un seguimiento de cuántas veces hemos
+he visto esa palabra. Si es la primera vez que vemos una palabra, primero insertaremos
+el valor 0.</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    use std::collections::HashMap;
+
+    let text = "hello world wonderful world";
+
+    let mut map = HashMap::new();
+
+    for word in text.split_whitespace() {
+        let count = map.entry(word).or_insert(0);
+        *count += 1;
+    }
+
+    println!("{:?}", map);
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 8-25: Contar las ocurrencias de palabras usando un hash
+mapa que almacena palabras y recuentos</span></p>
+
+<p>Este código imprimirá <code>{"world»: 2, «hello»: 1, «wonderful»: 1}</code>. Es posible que veas
+los mismos pares clave/valor impresos en un orden diferente: recuérdese del
+<a href="#accessing-values-in-a-hash-map">La sección «Acceso a los valores en un mapa hash»</a> <!-- ignore --> que
+la iteración sobre un mapa hash se realiza en un orden arbitrario</p>.
+
+<p>El método <code>split_whitespace</code> devuelve un iterador sobre subdivisiones, separadas por
+<code>espacio en blanco, del valor del texto.</code> El método <code>or_insert devuelve</code> un valor mutable
+referencia (<code>&mut V</code>) al valor de la clave especificada. Aquí lo almacenamos
+referencia mutable en la variable de <code>recuento</code>, por lo que para asignarla a ese valor,
+<code>primero debemos desreferenciar el <code>recuento</code> con el asterisco (*).</code> El mutable
+la referencia sale del alcance al final del ciclo <code>for</code>, por lo que todos estos
+los cambios son seguros y están permitidos por las normas de préstamo</p>.
+
+<h3 id="hashing-functions"><a class="header" href="#hashing-functions">Funciones de hash</a></h3>
+
+<p>De forma predeterminada, <code>HashMap</code> usa una función de hash llamada <em>SipHash</em> que puede proporcionar
+resistencia a los ataques de denegación de servicio (DoS) con hachís
+tablas <sup class="footnote-reference"><a href="#siphash">1</a></sup> <!-- ignore -->. Este no es el algoritmo de hash más rápido
+disponible, pero la compensación por una mayor seguridad viene con la llegada
+el rendimiento vale la pena. Si haces un perfil de tu código y lo encuentras como predeterminado
+la función hash es demasiado lenta para sus propósitos, puede cambiar a otra función
+especificando un hasher diferente. Un <em>hasher</em> es un tipo que implementa el
+<code>El rasgo BuildHasher</code>. Hablaremos sobre los rasgos y cómo implementarlos en
+Capítulo 10. No es necesario que implemente su propio hasher desde
+scratch; <a href="https://crates.io/">crates.io</a> <!-- ignore --> tiene bibliotecas compartidas por
+otros usuarios de Rust que proporcionan hashers que implementan muchos métodos de hash comunes
+algoritmos.</p>
+
+<div class="footnote-definition" id="siphash">
+<sup class="footnote-definition-label">1</sup>
+<p><a href="https://en.wikipedia.org/wiki/SipHash">https://en.wikipedia.org/wiki/SipHash</a></p>
+</div>
+
+<h2 id="summary"><a class="header" href="#summary">Resumen</a></h2>
+
+<p>Los vectores, las cadenas y los mapas hash proporcionarán una gran cantidad de funciones
+son necesarios en los programas cuando se necesita almacenar datos, acceder a ellos y modificarlos. Aquí están
+Algunos ejercicios que ahora deberías estar preparado para resolver:</p>
+
+<ul>
+<li>Dada una lista de números enteros, usa un vector y devuelve la mediana (cuando está ordenada,
+el valor (en la posición media) y el modo (el valor que aparece con más frecuencia);
+un mapa hash (aquí) de la lista será útil.</li>
+<li>Convierte cadenas a latín porcino. La primera consonante de cada palabra se mueve a
+al final de la palabra se le añade «ay», por lo que «primero» se convierte en «primer día». ¿Palabras?
+a las que comienzan con una vocal se les añade la palabra «heno» al final («manzana» se convierte en
+«manzana-heno»). ¡Ten en cuenta los detalles sobre la codificación UTF-8!</li>
+<li>Con un mapa hash y vectores, crea una interfaz de texto que permita al usuario añadir
+nombres de empleados para un departamento de una empresa. Por ejemplo, «Añade a Sally a
+Ingeniería» o «Añadir a Amir a Ventas». Luego, deje que el usuario recupere una lista de todos
+personas de un departamento o todas las personas de la empresa por departamento, ordenadas
+alfabéticamente</li>. </ul>
+
+<p>La documentación estándar de la API de la biblioteca describe los métodos que utilizan vectores, cadenas,
+¡y los mapas hash tienen eso que será útil para estos ejercicios!</p>
+
+<p>Estamos incurriendo en programas más complejos en los que las operaciones pueden fallar, por lo que es
+un momento perfecto para hablar sobre el manejo de errores. ¡Lo haremos a continuación!</p>

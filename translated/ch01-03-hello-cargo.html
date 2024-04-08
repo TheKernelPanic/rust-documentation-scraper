@@ -1,0 +1,243 @@
+
+
+<h2 id="hello-cargo"><a class="header" href="#hello-cargo">¡Hola, Cargo!</a></h2>
+
+<p>Cargo es el sistema de construcción y el administrador de paquetes de Rust. La mayoría de los rustáceos utilizan esta herramienta
+para administrar sus proyectos de Rust porque Cargo se encarga de muchas tareas por usted,
+como crear su código, descargar las bibliotecas de las que depende su código y
+crear esas bibliotecas. (Llamamos a las bibliotecas que su código necesita
+<em>dependencias</em>.</p>)
+
+<p>Los programas de Rust más sencillos, como el que hemos escrito hasta ahora, no tienen ninguno
+dependencias. Si hubiéramos construido el «¡Hola, mundo!» proyecto con Cargo, sería
+usa solo la parte de Cargo que se encarga de crear tu código. A medida que escribes más
+programas complejos de Rust, añadirás dependencias, y si inicias un proyecto
+usando Cargo, agregar dependencias será mucho más fácil de hacer</p>.
+
+<p>Debido a que la gran mayoría de los proyectos de Rust usan Cargo, el resto de este libro
+asume que también estás usando Cargo. Cargo viene instalado con Rust si
+utilizó los instaladores oficiales descritos en el
+<!-- ignore --> sección <a href="ch01-01-installation.html#installation">«Instalación».</a> Si ha instalado Rust
+por otros medios, compruebe si Cargo está instalado introduciendo el
+lo siguiente en su terminal:</p>
+
+<pre><code class="language-console">$ cargo --version
+</code></pre>
+
+<p>Si ves un número de versión, ¡lo tienes! Si aparece un error, por ejemplo, si <code>no se ha encontrado el comando</code>, consulte la documentación del método de instalación para
+determine cómo instalar Cargo por separado.</p>
+
+<h3 id="creating-a-project-with-cargo"><a class="header" href="#creating-a-project-with-cargo">Creación de un proyecto con Cargo</a></h3>
+
+<p>Vamos a crear un nuevo proyecto con Cargo y veamos en qué se diferencia de nuestro
+original «¡Hola, mundo!» proyecto. Vuelve al directorio de tus <em>proyectos</em>
+(o dondequiera que hayas decidido almacenar tu código). Luego, en cualquier sistema operativo,
+ejecuta lo siguiente:</p>
+
+<pre><code class="language-console">$ cargo new hello_cargo
+$ cd hello_cargo
+</code></pre>
+
+<p>El primer comando crea un nuevo directorio y proyecto llamado <em>hello_cargo</em>.
+Hemos llamado a nuestro proyecto <em>hello_cargo y Cargo crea sus</em> archivos en un
+directorio del mismo nombre</p>.
+
+<p>Ve al directorio <em>hello_cargo</em> y lista los archivos. Verás ese Cargo
+ha generado dos archivos y un directorio para nosotros: un archivo <em>Cargo.toml</em> y un
+</p><em>directorio <em>src</em> con un archivo main.rs en su interior.</em>
+
+<p>También ha inicializado un nuevo repositorio de Git junto con un <em>archivo.gitignore</em>.
+Los archivos Git no se generarán si ejecutas <code>cargo</code> new en un Git existente
+repositorio; puedes anular este comportamiento usando <code>cargo new --vcs=git</code></p>.
+
+<blockquote>
+<p>Nota: Git es un sistema de control de versiones común. Puedes cambiar la <code>carga como nueva</code> a
+utilice un sistema de control de versiones diferente o no utilice ningún sistema de control de versiones utilizando
+la marca <code>--vcs.</code> Ejecute <code>cargo new --help</code> para ver las opciones disponibles</p>. </blockquote>
+
+<p>Abre <em>Cargo.toml</em> en el editor de texto que prefieras. Debe tener un aspecto similar al
+código en el Listado 1-2.</p>
+
+<p><span class="filename">Nombre del archivo: Cargo.toml</span></p>
+
+<pre><code class="language-toml">[package]
+name = "hello_cargo"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+</code></pre>
+
+<p><span class="caption"><code>Listado 1-2: Contenido de <em>Cargo.toml</em> generado por cargo new</code></span></p>
+
+<p>Este archivo está en el <a href="https://toml.io"><em>TOML <!-- ignore --> (Tom's</em></a> <em>Obvious, Minimal)
+Formato de idioma</em>), que es el formato de configuración de Cargo</p>.
+
+<p>La primera línea, <code>[paquete]</code>, es un encabezado de sección que indica que el
+las siguientes declaraciones configuran un paquete. A medida que añadimos más información a
+en este archivo, agregaremos otras secciones.</p>
+
+<p>Las siguientes tres líneas establecen la información de configuración que Cargo necesita compilar.
+su programa: el nombre, la versión y la edición de Rust que se utilizará. Hablaremos
+sobre la clave de <code>edición</code> en <a href="appendix-05-editions.html">el Apéndice <!-- ignore --> E.</a></p>
+
+<p>La última línea, <code>[dependencies]</code>, es el comienzo de una sección en la que puedes enumerar cualquier
+de las dependencias de tu proyecto. En Rust, los paquetes de código se denominan
+<em>cajas</em>. No necesitaremos otras cajas para este proyecto, pero las necesitaremos en
+primer proyecto en el capítulo 2, así que usaremos esta sección de dependencias</p>.
+
+<p>Ahora abre <em>src/main.rs</em> y echa un vistazo:</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    println!("Hello, world!");
+}</code></pre></pre>
+
+<p>Cargo ha generado un mensaje de «¡Hola, mundo!» programa para ti, igual que el que tenemos
+¡escrito en el Listado 1-1! Hasta ahora, las diferencias entre nuestro proyecto y el
+El proyecto generado por Cargo es que Cargo colocó el código en el <em>directorio src</em>
+y tenemos un archivo de configuración <em>Cargo.toml</em></p> en el directorio superior.
+
+<p>Cargo espera que sus archivos fuente vivan dentro del directorio <em>src</em>. El
+el directorio de proyectos de nivel superior es solo para archivos README, información de licencias,
+archivos de configuración y cualquier otra cosa que no esté relacionada con su código. Uso de Cargo
+le ayuda a organizar sus proyectos. Hay un lugar para todo, y
+todo está en su lugar.</p>
+
+<p>Si iniciaste un proyecto que no usa Cargo, como hicimos con el mensaje «Hola,
+¡mundo!» proyecto, puedes convertirlo en un proyecto que sí use Cargo. Mueva el
+<em>el código del proyecto al directorio <em>src</em> y cree un Cargo.toml apropiado</em>
+archivo.</p>
+
+<h3 id="building-and-running-a-cargo-project"><a class="header" href="#building-and-running-a-cargo-project">Construcción y ejecución de un proyecto de carga</a></h3>
+
+<p>Ahora veamos qué es diferente cuando creamos y ejecutamos el programa «¡Hola, mundo!»
+programa con Cargo! Desde tu directorio <em>hello_cargo</em>, crea tu proyecto de la siguiente manera
+ingresando el siguiente comando</p>:
+
+<pre><code class="language-console">$ cargo build
+   Compiling hello_cargo v0.1.0 (file:///projects/hello_cargo)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.85 secs
+</code></pre>
+
+<p>Este comando crea un archivo ejecutable en <em>target/debug/hello_cargo</em> (o
+<em>target\ debug\ hello_cargo.exe</em> (en Windows) en lugar de en tu archivo actual
+directorio. Como la compilación predeterminada es una compilación de depuración, Cargo coloca el binario en
+un directorio llamado <em>debug</em>. Puede ejecutar el ejecutable con este comando</p>:
+
+<pre><code class="language-console">$ ./target/debug/hello_cargo # or .\target\debug\hello_cargo.exe on Windows
+Hello, world!
+</code></pre>
+
+<p>Si todo va bien<code>, ¡hola mundo!</code> debería imprimirse en la terminal. Al ejecutar <code>cargo build</code> por primera vez, Cargo también crea un nuevo archivo en la parte superior
+nivel: <em>Cargo.lock</em>. Este archivo mantiene un registro de las versiones exactas de
+dependencias de su proyecto. Este proyecto no tiene dependencias, por lo que el
+el archivo es un poco escaso. Nunca necesitarás cambiar este archivo manualmente; Cargo
+administra su contenido por ti.</p>
+
+<p>Acabamos de construir un proyecto con <code>cargo build</code> y lo ejecutamos con
+<code>. </code><code>/target/debug/hello_cargo, pero también podemos usar cargo run para compilar el</code>
+código y, a continuación, ejecutar</p> el ejecutable resultante con un solo comando:
+
+<pre><code class="language-console">$ cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 0.0 secs
+     Running `target/debug/hello_cargo`
+Hello, world!
+</code></pre>
+
+<p>Usar <code>cargo run</code> es más conveniente que tener que recordar ejecutar <code>cargo build</code> y luego usar toda la ruta hacia el binario, por lo que la mayoría de los desarrolladores usan <code>cargo run</code>.</p>
+
+<p>Tenga en cuenta que esta vez no vimos ningún resultado que indicara que Cargo estaba compilando
+<code>hello_cargo</code>. Cargo descubrió que los archivos no habían cambiado, así que no
+reconstruí, pero solo ejecuté el binario. Si hubiera modificado su código fuente, Cargo
+habrías reconstruido el proyecto antes de ejecutarlo, y habrías visto esto
+salida:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling hello_cargo v0.1.0 (file:///projects/hello_cargo)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.33 secs
+     Running `target/debug/hello_cargo`
+Hello, world!
+</code></pre>
+
+<p>Cargo también proporciona un comando llamado <code>cargo check</code>. Este comando comprueba rápidamente
+su código para asegurarse de que se compila pero no produce un ejecutable</p>:
+
+<pre><code class="language-console">$ cargo check
+   Checking hello_cargo v0.1.0 (file:///projects/hello_cargo)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.32 secs
+</code></pre>
+
+<p>¿Por qué no querrías un ejecutable? A menudo, el <code>control de carga</code> es mucho más rápido que
+<code>cargo build</code> porque omite el paso de producir un ejecutable. Si eres
+compruebas continuamente tu trabajo mientras escribes el código, al usar <code>cargo check</code>
+¡acelera el proceso de hacerte saber si tu proyecto aún se está compilando! Como
+Por lo tanto, muchos rustáceos <code>comprueban su carga</code> periódicamente mientras escriben sus
+programa para asegurarse de que se compila. Luego ejecutan <code>cargo build</code> cuando están
+listo para usar el ejecutable.</p>
+
+<p>Recapitulemos lo que hemos aprendido hasta ahora sobre Cargo:</p>
+
+<ul>
+<li>Podemos crear un proyecto usando <code>cargo new</code>.</li>
+<li>Podemos construir un proyecto usando <code>cargo build</code>.</li>
+<li>Podemos construir y ejecutar un proyecto en un solo paso usando <code>cargo run</code>.</li>
+<li>Podemos construir un proyecto sin producir un binario para comprobar si hay errores usando
+<code>control de carga</code>.</li>
+<li>En lugar de guardar el resultado de la compilación en el mismo directorio que nuestro código,
+Cargo lo almacena en el directorio <em>target/debug</em></li>. </ul>
+
+<p>Una ventaja adicional de usar Cargo es que los comandos son los mismos, no.
+sin importar el sistema operativo en el que estés trabajando. Así que, en este punto, no lo haremos
+ya no proporcionamos instrucciones específicas para Linux y macOS en comparación con Windows.</p>
+
+<h3 id="building-for-release"><a class="header" href="#building-for-release">Construir para su lanzamiento</a></h3>
+
+<p>Cuando tu proyecto esté finalmente listo para su lanzamiento, puedes usar <code>cargo build --release</code> para compilarlo con optimizaciones. Este comando creará un
+<em>ejecutable en <em>target/release en lugar de target/debug</em>.</em> Las optimizaciones
+hacen que tu código de Rust se ejecute más rápido, pero activarlos alarga el tiempo que lleva
+para que tu programa se compile. Por eso hay dos perfiles diferentes: uno
+para el desarrollo, cuando se quiere reconstruir de forma rápida y frecuente, y otro para
+crear el programa final que entregarás a un usuario y que no será reconstruido
+repetidamente y eso se ejecutará lo más rápido posible. Si está comparando su
+el tiempo de ejecución del código, asegúrese de ejecutar <code>cargo build --release</code> y compararlo con
+el ejecutable en <em>target/release</em></p>.
+
+<h3 id="cargo-as-convention"><a class="header" href="#cargo-as-convention">La carga como convención</a></h3>
+
+<p>Con proyectos sencillos, Cargo no ofrece mucho más valor que el simple uso
+<code>rustc</code>, pero demostrará su valía a medida que sus programas se vuelvan más complejos.
+Una vez que los programas se convierten en varios archivos o necesitan una dependencia, es mucho más fácil
+deja que Cargo coordine la construcción.</p>
+
+<p>Aunque el proyecto <code>hello_cargo</code> es simple, ahora usa gran parte de la
+herramientas que utilizarás durante el resto de tu carrera en Rust. De hecho, para trabajar en cualquier
+proyectos existentes, puede usar los siguientes comandos para ver el código
+usando Git, cambia al directorio de ese proyecto y compila:</p>
+
+<pre><code class="language-console">$ git clone example.org/someproject
+$ cd someproject
+$ cargo build
+</code></pre>
+
+</a><p>Para obtener más información sobre Cargo, consulte <a href="https://doc.rust-lang.org/cargo/">su documentación.</p>
+
+<h2 id="summary"><a class="header" href="#summary">Resumen</a></h2>
+
+<p>¡Ya has tenido un gran comienzo en tu viaje por Rust! En este capítulo,
+has aprendido a:</p>
+
+<ul>
+<li>Instala la última versión estable de Rust usando <code>rustup</code></li>
+<li>Actualiza a una versión más reciente de Rust</li>
+<li>Abra la documentación instalada localmente</li>
+<li>Escribe y ejecuta un mensaje de «¡Hola, mundo!» programa usando <code>rustc directamente</code></li>
+<li>Cree y ejecute un nuevo proyecto utilizando las convenciones de Cargo</li></ul>
+
+<p>Este es un buen momento para crear un programa más sustancial para acostumbrarse a la lectura.
+y escribir código en Rust. Así que, en el capítulo 2, crearemos un programa de adivinanzas.
+Si prefieres empezar por aprender cómo funcionan los conceptos de programación más comunes en
+Rust, consulte el capítulo 3 y, a continuación, regrese al capítulo 2.</p>

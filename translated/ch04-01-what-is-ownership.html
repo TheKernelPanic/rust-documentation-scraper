@@ -1,0 +1,585 @@
+
+
+<h2 id="what-is-ownership"><a class="header" href="#what-is-ownership">¿Qué es la propiedad?</a></h2>
+
+<p>La <em>propiedad</em> es un conjunto de reglas que rigen la forma en que un programa de Rust administra la memoria.
+Todos los programas tienen que administrar la forma en que utilizan la memoria de una computadora mientras se ejecuta.
+Algunos lenguajes tienen un sistema de recolección de basura que, con frecuencia, busca aquellos que ya no se utilizan
+memoria mientras se ejecuta el programa; en otros lenguajes, el programador debe explícitamente
+asignar y liberar la memoria. Rust utiliza un tercer enfoque: la memoria se administra
+mediante un sistema de propiedad con un conjunto de reglas que el compilador comprueba. Si
+se infringe alguna de las reglas, el programa no se compilará. Ninguna de las funciones
+de propiedad ralentizará el programa mientras se esté ejecutando.</p>
+
+<p>Debido a que la propiedad es un concepto nuevo para muchos programadores, lleva algo de tiempo
+para acostumbrarse. La buena noticia es que cuanta más experiencia tengas con Rust
+y según las reglas del sistema de propiedad, más fácil le resultará hacerlo de forma natural
+desarrolla un código que sea seguro y eficiente. ¡Sigan así!</p>
+
+<p>Cuando comprenda la propiedad, tendrá una base sólida para comprender
+las características que hacen que Rust sea único. En este capítulo, aprenderás a ser propietario de
+analizando algunos ejemplos que se centran en una estructura de datos muy común:
+cadenas.</p>
+
+<blockquote>
+<h3 id="the-stack-and-the-heap"><a class="header" href="#the-stack-and-the-heap">La pila y el montón</a></h3>
+<p>Muchos lenguajes de programación no requieren que pienses en la pila y la
+son baratos muy a menudo. Pero en un lenguaje de programación de sistemas como Rust, ya sea
+el valor está en la pila o en el montón afecta al comportamiento del lenguaje y por qué
+tienes que tomar ciertas decisiones. Las partes de la propiedad se describirán en
+la relación entre la pila y el montón más adelante en este capítulo, así que he aquí un resumen
+explicación en preparación</p>.
+<p>Tanto la pila como el montón son partes de la memoria disponibles para su uso en el código
+en tiempo de ejecución, pero están estructurados de diferentes maneras. La pila almacena
+los valores en el orden en que los obtiene y elimina los valores en el orden opuesto
+orden. Esto se conoce como <em>último en entrar, primero en salir</em>. Piensa en una pila de
+platos: cuando agregas más platos, los colocas encima de la pila, y cuando
+si necesitas un plato, sacas uno de la parte superior. Añadir o quitar platos de
+¡el centro o la parte inferior no funcionarían tan bien! Agregar datos se llama <em>empujar
+a la pila</em>, y eliminar datos se denomina <em>desprenderse de la pila</em>. Todos
+los datos almacenados en la pila deben tener un tamaño fijo conocido. Datos con una incógnita
+el tamaño en el momento de la compilación o un tamaño que pueda cambiar deben almacenarse en el montón
+en su lugar</p>.
+<p>El montón está menos organizado: cuando colocas datos en el montón, solicitas un
+cierta cantidad de espacio. El asignador de memoria encuentra un espacio vacío en el montón
+<em>que sea lo suficientemente grande, lo marca como en uso y devuelve un puntero, que</em>
+es la dirección de esa ubicación. Este proceso se denomina <em>asignación en el
+</em>montón y, a veces, se abrevia simplemente como <em>asignar</em> (empujar) valores a
+la pila no se considera una asignación). Porque el puntero al montón es un
+conocido y de tamaño fijo, puede almacenar el puntero en la pila, pero cuando lo desee
+los datos reales, debes seguir el puntero. Piense en estar sentado en un
+restaurante. Cuando ingresas, indicas el número de personas de tu grupo y
+el anfitrión encuentra una mesa vacía en la que caben todos los gustos y te lleva hasta allí. Si
+alguien de tu grupo llega tarde, puede preguntarte dónde te has sentado
+encontrarte.</p>
+<p>Presionar la pila es más rápido que asignarla en el montón porque el
+el asignador nunca tiene que buscar un lugar para almacenar nuevos datos; esa ubicación es
+siempre en la parte superior de la pila. Comparativamente, asignando espacio en el montón
+requiere más trabajo porque el asignador primero debe encontrar un espacio lo suficientemente grande
+para almacenar los datos y luego llevar la contabilidad a fin de prepararse para la próxima
+</p>asignación.
+El <p>acceso a los datos del montón es más lento que el acceso a los datos de la pila porque
+tienes que seguir un indicador para llegar allí. Los procesadores contemporáneos son más rápidos
+si saltan menos en memoria. Continuando con la analogía, consideremos un servidor
+en un restaurante recibiendo pedidos de muchas mesas. Lo más eficiente es obtener
+todos los pedidos en una mesa antes de pasar a la siguiente. Tomando un
+un pedido de la tabla A, luego un pedido de la tabla B, luego otro de A, y
+entonces otro de B sería un proceso mucho más lento. De la misma manera, un
+el procesador puede hacer mejor su trabajo si trabaja con datos cercanos a otros
+datos (tal como están en la pila) en lugar de estar más lejos (como puede estar en el
+montón).</p>
+<p>Cuando el código llama a una función, los valores pasan a la función
+(incluidos, potencialmente, los punteros a los datos del montón) y la función
+las variables locales se insertan en la pila. Cuando la función termine, esos
+los valores se eliminan de la pila</p>.
+<p>Hacer un seguimiento de qué partes del código utilizan qué datos del montón,
+minimizar la cantidad de datos duplicados en el montón y eliminar los datos no utilizados
+los datos acumulados para no quedarse sin espacio son todos problemas que la propiedad
+direcciones. Una vez que comprenda la propiedad, no tendrá que pensar en la
+la pila y el montón muy a menudo, pero sabiendo que el objetivo principal de la propiedad
+es administrar los datos acumulados que pueden ayudar a explicar por qué funcionan de la manera en que lo hacen</p>. </blockquote>
+
+<h3 id="ownership-rules"><a class="header" href="#ownership-rules">Reglas de propiedad</a></h3>
+
+<p>En primer lugar, echemos un vistazo a las normas de propiedad. Tenga en cuenta estas reglas mientras lo hacemos
+analice los ejemplos que las ilustran:</p>
+
+<ul>
+<li>Cada valor de Rust tiene un <em>propietario</em>.</li>
+<li>Solo puede haber un propietario a la vez.</li>
+<li>Cuando el propietario se salga del ámbito de aplicación, el valor desaparecerá.</li> </ul>
+
+<h3 id="variable-scope"><a class="header" href="#variable-scope">Alcance variable</a></h3>
+
+<p>Ahora que hemos superado la sintaxis básica de Rust, no incluiremos todos los <code>fn main () {</code>
+código en los ejemplos, así que si lo estás siguiendo, asegúrate de poner lo siguiente
+ejemplos dentro de una función <code>principal</code> de forma manual. Como resultado, nuestros ejemplos serán
+un poco más concisos, lo que nos permitirá centrarnos en los detalles reales en lugar de
+código repetitivo</p>.
+
+<p>Como primer ejemplo de propiedad, veremos el <em>alcance</em> de algunas variables. A
+el alcance es el rango dentro de un programa para el que un artículo es válido. Toma el
+variable siguiente:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let s = "hello";
+<span class="boring">}</span></code></pre></pre>
+
+<p>La variable <code>s</code> hace referencia a un literal de cadena, donde el valor de la cadena es
+codificado en el texto de nuestro programa. La variable es válida desde el punto en
+que se declara hasta el final del <em>ámbito</em> actual. El listado 4-1 muestra un
+programa con comentarios que indican dónde sería válida la variable <code>s.</code></p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    {                      // s is not valid here, it’s not yet declared
+        let s = "hello";   // s is valid from this point forward
+
+        // do stuff with s
+    }                      // this scope is now over, and s is no longer valid
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 4-1: Una variable y el alcance en el que se encuentra
+válido</span></p>
+
+<p>En otras palabras, aquí hay dos momentos importantes:</p>
+
+<ul>
+<li>Cuando <code>s</code> <em>entra en el</em> ámbito de aplicación, es válido.</li>
+<li>Sigue siendo válido hasta que se <em>salga del ámbito de</em> aplicación.</li> </ul>
+
+<p>En este punto, la relación entre los ámbitos y cuándo las variables son válidas es
+similar a la de otros lenguajes de programación. Ahora vamos a construir sobre esto
+entenderlo introduciendo el tipo <code>String</code>.</p>
+
+<h3 id="the-string-type"><a class="header" href="#the-string-type">El tipo <code>de cadena</code></a></h3>
+
+<p>Para ilustrar las reglas de propiedad, necesitamos un tipo de datos que sea más complejo
+que los que analizamos en la <!-- ignore --> sección <a href="ch03-02-data-types.html#data-types">«Tipos de datos»</a>
+del capítulo 3. Los tipos mencionados anteriormente son de un tamaño conocido, se pueden almacenar
+en la pila y se desprenden de la pila cuando se les acaba el alcance, y pueden ser
+se copian rápida y trivialmente para crear una instancia nueva e independiente si es otra
+parte del código necesita usar el mismo valor en un ámbito diferente. Pero queremos
+observe los datos que están almacenados en el montón y explore cómo Rust sabe cuándo
+limpia esos datos, y el tipo <code>String</code> es un gran ejemplo</p>.
+
+<p>Nos concentraremos en las partes de <code>String</code> relacionadas con la propiedad. Estos
+estos aspectos también se aplican a otros tipos de datos complejos, ya sean proporcionados por
+la biblioteca estándar o creada por usted. Hablaremos de <code>String</code> con más profundidad en
+<a href="ch08-02-strings.html">Capítulo 8</a> <!-- ignore -->.</p>
+
+<p>Ya hemos visto los literales de cadena, en los que el valor de una cadena está codificado en nuestro
+programa. Los literales de cadena son prácticos, pero no son adecuados para todos
+situación en la que es posible que queramos usar texto. Una razón es que son
+inmutable. Otra es que no todos los valores de cadena pueden conocerse cuando escribimos
+nuestro código: por ejemplo, ¿qué pasa si queremos tomar la entrada del usuario y almacenarla? ¿Para
+En estas situaciones, Rust tiene un segundo tipo de cadena, <code>String</code>. Este tipo gestiona
+los datos se asignan al montón y, como tal, puede almacenar una cantidad de texto que
+es desconocido para nosotros en el momento de la compilación. Puede crear una <code>cadena</code> a partir de una cadena
+literal usando la función <code>from</code>, de la siguiente manera:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let s = String::from("hello");
+<span class="boring">}</span></code></pre></pre>
+
+<p><code>El operador de dos puntos<code>::</code> nos permite asignar un espacio de nombres a esta forma en particular</code>
+funcionan con el tipo <code>String</code> en lugar de usar algún tipo de nombre como
+<code>string_from</code>. <a href="ch05-03-method-syntax.html#method-syntax">Discutiremos más sobre esta sintaxis en el «Método»
+<!-- ignore --> En la sección «Sintaxis»</a> del capítulo 5, y cuando hablemos
+sobre el espacio de nombres con los módulos en <a href="ch07-03-paths-for-referring-to-an-item-in-the-module-tree.html">«Rutas para hacer referencia a un elemento del
+Árbol de módulos»</a> <!-- ignore --> en el capítulo 7</p>.
+
+<p>Este tipo de cadena se <em>puede</em> mutar:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let mut s = String::from("hello");
+
+    s.push_str(", world!"); // push_str() appends a literal to a String
+
+    println!("{}", s); // This will print `hello, world!`
+<span class="boring">}</span></code></pre></pre>
+
+<p>Entonces, ¿cuál es la diferencia aquí? ¿Por qué se puede mutar <code>una cadena</code> pero es literal
+¿no puede? La diferencia está en la forma en que estos dos tipos manejan la memoria.</p>
+
+<h3 id="memory-and-allocation"><a class="header" href="#memory-and-allocation">Memoria y asignación</a></h3>
+
+<p>En el caso de un literal de cadena, conocemos el contenido en el momento de la compilación, por lo que el
+el texto está codificado directamente en el ejecutable final. Esta es la razón por la que cadena
+los literales son rápidos y eficientes. Pero estas propiedades solo provienen de la cadena
+la inmutabilidad del literal. Desafortunadamente, no podemos poner ni una gota de memoria en el
+binario para cada fragmento de texto cuyo tamaño se desconoce en el momento de la compilación y cuyo
+el tamaño puede cambiar mientras se ejecuta el programa.</p>
+
+<p>Con el tipo <code>String</code>, para soportar un fragmento de texto mutable y ampliable,
+necesitamos asignar una cantidad de memoria al montón, desconocida en el momento de la compilación,
+para guardar el contenido. Esto significa:</p>
+
+<ul>
+<li>La memoria debe solicitarse al asignador de memoria en tiempo de ejecución.</li>
+<li>Necesitamos una forma de devolver esta memoria al asignador cuando hayamos terminado
+</li><code>nuestra cadena.</code> </ul>
+
+<p>Esa primera parte la hacemos nosotros: cuando llamamos a <code>String: :from</code>, su implementación
+solicita la memoria que necesita. Esto es prácticamente universal en la programación
+lenguajes.</p>
+
+<p>Sin embargo, la segunda parte es diferente. En idiomas con un <em>recolector de basura
+(GC)</em>, el GC realiza un seguimiento de la memoria que no se está utilizando y la limpia
+ya no necesitamos pensar en ello. En la mayoría de los idiomas sin un GC,
+es nuestra responsabilidad identificar cuándo la memoria ya no se usa y
+llame al código para liberarlo explícitamente, tal como lo hicimos para solicitarlo. Haciendo esto
+correctamente ha sido históricamente un problema de programación difícil. Si lo olvidamos,
+desperdiciaremos la memoria. Si lo hacemos demasiado pronto, tendremos una variable no válida. Si
+lo hacemos dos veces, eso también es un error. Necesitamos emparejar exactamente una <code>asignación</code> con
+exactamente uno <code>gratis</code>.</p>
+
+<p>Rust toma un camino diferente: la memoria se devuelve automáticamente una vez que
+la variable que la posee queda fuera de su alcance. Esta es una versión de nuestro ejemplo de alcance
+del Listado 4-1 usando una <code>cadena</code> en lugar de un literal de cadena</p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    {
+        let s = String::from("hello"); // s is valid from this point forward
+
+        // do stuff with s
+    }                                  // this scope is now over, and s is no
+                                       // longer valid
+<span class="boring">}</span></code></pre></pre>
+
+<p>Hay un punto natural en el que podemos devolver la memoria que necesita nuestra <code>cadena</code>
+al asignador: cuando <code>s</code> sale del alcance. Cuando una variable sale de
+alcance, Rust llama a una función especial para nosotros. Esta función se llama
+<a href="../std/ops/trait.Drop.html#tymethod.drop"><code>drop</code></a> <!-- ignore -->, y es donde el autor de <code>String</code> puede poner
+el código para devolver la memoria. <code>Las llamadas de Rust se cancelan automáticamente al cerrar</code>
+soporte rizado.</p>
+
+<blockquote>
+<p>Nota: En C++, este patrón de desasignación de recursos al final de un elemento
+La vida útil a veces se denomina «<em>La adquisición de recursos es inicialización» (RAII)</em>.
+La función de <code>soltar</code> en Rust le resultará familiar si ha utilizado RAII
+patrones.</p> </blockquote>
+
+<p>Este patrón tiene un profundo impacto en la forma en que se escribe el código de Rust. Puede parecer
+simple ahora mismo, pero el comportamiento del código puede ser inesperado en más
+situaciones complicadas en las que queremos que varias variables usen los datos
+que hemos asignado en el montón. Vamos a explorar algunas de esas situaciones ahora</p>.
+
+
+
+<p><a id="ways-variables-and-data-interact-move"></a></p>
+
+<h4 id="variables-and-data-interacting-with-move"><a class="header" href="#variables-and-data-interacting-with-move">Variables y datos que interactúan con Move</a></h4>
+
+<p>Varias variables pueden interactuar con los mismos datos de diferentes maneras en Rust.
+Veamos un ejemplo en el que se usa un entero en el Listado 4-2</p>.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let x = 5;
+    let y = x;
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption"><code>Listado 4-2: Asignación del valor entero de la variable x</code>
+<code>a y</code></span></p>
+
+<p>Probablemente podamos adivinar lo que está haciendo: «vincular el valor <code>5</code> a <code>x</code>; luego hacer
+una copia del valor de <code>x</code> y vincularlo a <code>y</code>». Ahora tenemos dos variables, <code>x</code>
+e <code>y</code>, y ambas son iguales a <code>5</code>. De hecho, esto es lo que está sucediendo, porque los números enteros
+son valores simples con un tamaño fijo conocido, y estos dos valores de <code>5</code> son empujados
+a la pila.</p>
+
+<p>Ahora veamos la versión de <code>String</code>:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let s1 = String::from("hello");
+    let s2 = s1;
+<span class="boring">}</span></code></pre></pre>
+
+<p>Esto tiene un aspecto muy similar, por lo que podemos suponer que la forma en que funciona sería
+lo mismo: es decir, la segunda línea haría una copia del valor en <code>s1</code> y lo vincularía
+se ajusta a <code>s2</code>. Pero esto no es exactamente lo que pasa.</p>
+
+<p>Eche un vistazo a la figura 4-1 para ver qué le sucede a <code>String</code> bajo el
+fundas. Una <code>cadena</code> se compone de tres partes, que se muestran a la izquierda: un puntero a
+la memoria que contiene el contenido de la cadena, una longitud y una capacidad.
+Este grupo de datos se almacena en la pila. A la derecha está la memoria del
+montón que contiene el contenido</p>.
+
+<p><img alt="Dos tablas: la primera tabla contiene la representación de s1 en
+pila, compuesta por su longitud (5), su capacidad (5) y un puntero a la primera
+valor en la segunda tabla. La segunda tabla contiene la representación del
+cadenas de datos del montón, byte por byte.» src=» img/trpl04-01.svg "class="center» style="width: 50%; "</p>>
+
+<p><span class="caption"><code>Figura 4-1: Representación en memoria de una cadena</code>
+<code>manteniendo el valor <code>«hello»</code> vinculado a s1</code></span></p>
+
+<p>La longitud es la cantidad de memoria, en bytes, del contenido de la <code>cadena</code>
+usando actualmente. La capacidad es la cantidad total de memoria, en bytes, que
+La <code>cadena</code> ha recibido del asignador. La diferencia entre longitud y
+la capacidad importa, pero no en este contexto, así que, por ahora, está bien ignorar la
+capacidad.</p>
+
+<p>Cuando asignamos <code>s1</code> a <code>s2</code>, se copian los datos de la <code>cadena</code>, lo que significa que copiamos el
+el puntero, la longitud y la capacidad que hay en la pila. No copiamos el
+datos del montón al que hace referencia el puntero. En otras palabras, los datos
+la representación en la memoria se parece a la figura 4-2</p>.
+
+<p><img alt="Tres tablas: las tablas s1 y s2 representan las cadenas del
+</p>
+
+<p><span class="caption"><code>Figura 4-2: Representación en memoria de la variable s2</code>
+<code>que tiene una copia del puntero, la longitud y la capacidad de s1</code></span></p>
+
+<p>La representación <em>no</em> se parece a la figura 4-3, que es lo que haría la memoria
+parece que Rust, en cambio, también copió los datos del montón. Si Rust hizo esto, el
+la operación <code>s2 = s1</code> podría resultar muy cara en términos de rendimiento en tiempo de ejecución si
+los datos del montón eran grandes</p>.
+
+<p><img alt="Cuatro tablas: dos tablas que representan los datos de la pila para s1 y s2,
+</p>
+
+<p><span class="caption">Figura 4-3: Otra posibilidad de lo que podría <code>ser s2 = s1</code>
+hágalo si Rust también copió los datos del montón</span></p>
+
+<p>Anteriormente, dijimos que cuando una variable se sale del alcance, Rust automáticamente
+llama a la función <code>drop</code> y limpia la memoria acumulada de esa variable. Pero
+La figura 4-2 muestra ambos punteros de datos que apuntan a la misma ubicación. Este es un
+problema: cuando <code>s2</code> y <code>s1</code> se salen del alcance, ambos intentarán liberar el
+misma memoria. Esto se conoce como <em>doble error libre</em> y es uno de los de la memoria
+errores de seguridad que mencionamos anteriormente. Liberar memoria dos veces puede generar memoria
+corrupción, que puede provocar vulnerabilidades de seguridad</p>.
+
+<p>Para garantizar la seguridad de la memoria, después de la línea <code>let s2 = s1;</code>, Rust considera <code>s1</code> como
+ya no es válido. Por lo tanto, Rust no necesita liberar nada cuando se agota el <code>s1</code>
+fuera de alcance. Comprueba lo que sucede cuando intentas usar <code>s1</code> después de que <code>s2</code> sea
+creado; no funcionará:</p>
+
+<pre><code class="language-rust ignore does_not_compile"><span class="boring">fn main() {
+</span>    let s1 = String::from("hello");
+    let s2 = s1;
+
+    println!("{}, world!", s1);
+<span class="boring">}</span></code></pre>
+
+<p>Recibirá un error como este porque Rust le impide usar el
+referencia invalidada:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling ownership v0.1.0 (file:///projects/ownership)
+error[E0382]: borrow of moved value: `s1`
+ --&gt; src/main.rs:5:28
+  |
+2 |     let s1 = String::from("hello");
+  |         -- move occurs because `s1` has type `String`, which does not implement the `Copy` trait
+3 |     let s2 = s1;
+  |              -- value moved here
+4 |
+5 |     println!("{}, world!", s1);
+  |                            ^^ value borrowed here after move
+  |
+  = note: this error originates in the macro `$crate::format_args_nl` which comes from the expansion of the macro `println` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider cloning the value if the performance cost is acceptable
+  |
+3 |     let s2 = s1.clone();
+  |                ++++++++
+
+For more information about this error, try `rustc --explain E0382`.
+error: could not compile `ownership` due to previous error
+</code></pre>
+
+<p>Si ha escuchado los términos <em>copia superficial</em> y <em>copia profunda</em> mientras trabajaba con
+otros idiomas, el concepto de copiar el puntero, la longitud y la capacidad
+sin copiar los datos probablemente suene como hacer una copia superficial. Pero
+porque Rust también invalida la primera variable, en lugar de llamarse
+copia superficial, se conoce como <em>movimiento</em>. En este ejemplo, diríamos que <code>s1</code>
+se <em>trasladó</em> a <code>s2</code>. Por lo tanto, lo que realmente sucede se muestra en la figura 4-4</p>.
+
+<p><img alt="Tres tablas: las tablas s1 y s2 representan las cadenas del
+se apilan, respectivamente, y ambas apuntan a la misma cadena de datos del montón.
+La tabla s1 está atenuada porque s1 ya no es válida; solo se puede usar s2 para
+acceder a los datos del montón.» src=» img/trpl04-04.svg "class="center» style="width:
+</p>50%; ">
+
+<p><span class="caption">Figura 4-4: Representación en la memoria después de que <code>s1</code> haya sido
+invalidado</span></p>
+
+¡<p>Eso resuelve nuestro problema! Con solo <code>s2</code> válido, cuando sale de su alcance
+por sí solo liberará la memoria, y ya está.</p>
+
+<p>Además, hay una elección de diseño que está implícita en esto: Rust nunca
+creará automáticamente copias «profundas» de sus datos. Por lo tanto, cualquier <em>automático</em>
+Se puede suponer que la copia es económica en términos de rendimiento en tiempo de ejecución.</p>
+
+
+
+<p><a id="ways-variables-and-data-interact-clone"></a></p>
+
+<h4 id="variables-and-data-interacting-with-clone"><a class="header" href="#variables-and-data-interacting-with-clone">Variables y datos que interactúan con el clon</a></h4>
+
+<p>Si <em>queremos</em> copiar en profundidad los datos del montón de la <code>cadena</code>, no solo el
+apilar datos, podemos usar un método común llamado <code>clonación</code>. Discutiremos el método
+la sintaxis en el capítulo 5, pero porque los métodos son una característica común en muchos
+lenguajes de programación, probablemente los hayas visto antes.</p>
+
+<p>Este es un ejemplo del método de <code>clonación</code> en acción:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let s1 = String::from("hello");
+    let s2 = s1.clone();
+
+    println!("s1 = {}, s2 = {}", s1, s2);
+<span class="boring">}</span></code></pre></pre>
+
+<p>Esto funciona bien y produce explícitamente el comportamiento que se muestra en la Figura 4-3,
+</p><em>donde se copian los datos del montón.</em>
+
+<p>Cuando ve una llamada para <code>clonar</code>, sabe que se está produciendo un código arbitrario
+ejecutado y ese código puede resultar caro. Es un indicador visual de que algo
+está sucediendo algo diferente.</p>
+
+<h4 id="stack-only-data-copy"><a class="header" href="#stack-only-data-copy">Datos solo para pila: copiar</a></h4>
+
+<p>Hay otra arruga de la que aún no hemos hablado. Este código usando
+Los números enteros, parte de los cuales se muestran en el Listado 4-2</p>, funcionan y son válidos:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let x = 5;
+    let y = x;
+
+    println!("x = {}, y = {}", x, y);
+<span class="boring">}</span></code></pre></pre>
+
+<p>Pero este código parece contradecir lo que acabamos de aprender: no tenemos una llamada a
+<code>clon</code>, pero <code>x</code> sigue siendo válido y no se movió a <code>y.</code></p>
+
+<p>La razón es que tipos como los enteros que tienen un tamaño conocido en el momento de la compilación
+el tiempo se almacena completamente en la pila, por lo que las copias de los valores reales son rápidas
+para hacer. Eso significa que no hay ninguna razón por la que queramos evitar que <code>x</code> sea
+válido después de crear la variable <code>y</code>. En otras palabras, no hay diferencia
+aquí hay entre copias profundas y superficiales, por lo que llamar a un <code>clon</code> no serviría de nada
+es diferente de la copia superficial habitual, y podemos omitirla.</p>
+
+<p>Rust tiene una anotación especial llamada rasgo <code>Copy</code> que podemos colocar en
+tipos que se almacenan en la pila, al igual que los enteros (hablaremos más sobre
+rasgos en el <a href="ch10-02-traits.html">capítulo 10</a> <!-- ignore -->). Si un tipo implementa la <code>copia</code>
+rasgo, las variables que lo usan no se mueven, sino que se copian trivialmente,
+haciendo que sigan siendo válidas después de la asignación a otra variable</p>.
+
+<p>Rust no nos permitirá anotar un tipo con <code>Copy</code> si el tipo, o alguna de sus partes,
+ha implementado el rasgo <code>Drop</code>. Si el tipo necesita que suceda algo especial
+cuando el valor se sale del alcance y añadimos la anotación <code>Copy</code> a ese tipo,
+obtendremos un error en tiempo de compilación. <code>Para obtener información sobre cómo agregar la anotación Copy</code>
+a su tipo para implementar el rasgo, consulte <a href="appendix-03-derivable-traits.html">«Derivable
+Rasgos»</a> <!-- ignore --> en el Apéndice C.</p>
+
+<p>Entonces, ¿qué tipos implementan el rasgo <code>Copy</code>? Puede consultar la documentación para
+el tipo dado, sin duda, pero como regla general, cualquier grupo de escalares simples
+los valores pueden implementar <code>Copy</code>, y nada que requiera asignación o lo sea
+una forma de recurso puede implementar <code>Copy</code>. Estos son algunos de los tipos que
+implementan <code>Copy</code>:</p>
+
+<ul>
+<li>Todos los tipos de enteros, como <code>u32</code>.</li>
+<li><code><code>El tipo booleano, <code>bool</code>, con valores verdadero y falso.</code></code></li>
+<li><code>Todos los tipos de punto flotante, como f64.</code></li>
+<li><code>El tipo de carácter, char.</code></li>
+<li>Tuplas, si solo contienen tipos que también implementan <code>Copy</code>. Por ejemplo,
+<code>(i32, i32)</code> implementa <code>Copy</code>, pero <code>(i32, String)</code></li> no. </ul>
+
+<h3 id="ownership-and-functions"><a class="header" href="#ownership-and-functions">Propiedad y funciones</a></h3>
+
+<p>La mecánica de pasar un valor a una función es similar a la de
+asignar un valor a una variable. Al pasar una variable a una función, se moverá o
+copiar, tal como lo hace la asignación. El listado 4-3 tiene un ejemplo con algunas anotaciones
+mostrando dónde entran y salen del alcance las variables</p>.
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let s = String::from("hello");  // s comes into scope
+
+    takes_ownership(s);             // s's value moves into the function...
+                                    // ... and so is no longer valid here
+
+    let x = 5;                      // x comes into scope
+
+    makes_copy(x);                  // x would move into the function,
+                                    // but i32 is Copy, so it's okay to still
+                                    // use x afterward
+
+} // Here, x goes out of scope, then s. But because s's value was moved, nothing
+  // special happens.
+
+fn takes_ownership(some_string: String) { // some_string comes into scope
+    println!("{}", some_string);
+} // Here, some_string goes out of scope and `drop` is called. The backing
+  // memory is freed.
+
+fn makes_copy(some_integer: i32) { // some_integer comes into scope
+    println!("{}", some_integer);
+} // Here, some_integer goes out of scope. Nothing special happens.</code></pre></pre>
+
+<p><span class="caption">Listado 4-3: Funciones con propiedad y alcance
+anotado</span></p>
+
+<p>Si intentamos usar <code>s</code> después de la llamada a <code>takes_ownership</code>, Rust lanzaría un
+error en tiempo de compilación. Estas comprobaciones estáticas nos protegen de los errores. Intenta agregar
+código para la página <code>principal</code> que usa <code>s</code> y <code>x</code> para ver dónde puedes usarlos y dónde
+las reglas de propiedad te impiden hacerlo.</p>
+
+<h3 id="return-values-and-scope"><a class="header" href="#return-values-and-scope">Valores devueltos y alcance</a></h3>
+
+<p>Los valores devueltos también pueden transferir la propiedad. El listado 4-4 muestra un ejemplo de
+función que devuelve algún valor, con anotaciones similares a las del Listado
+4-3</p>.
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let s1 = gives_ownership();         // gives_ownership moves its return
+                                        // value into s1
+
+    let s2 = String::from("hello");     // s2 comes into scope
+
+    let s3 = takes_and_gives_back(s2);  // s2 is moved into
+                                        // takes_and_gives_back, which also
+                                        // moves its return value into s3
+} // Here, s3 goes out of scope and is dropped. s2 was moved, so nothing
+  // happens. s1 goes out of scope and is dropped.
+
+fn gives_ownership() -&gt; String {             // gives_ownership will move its
+                                             // return value into the function
+                                             // that calls it
+
+    let some_string = String::from("yours"); // some_string comes into scope
+
+    some_string                              // some_string is returned and
+                                             // moves out to the calling
+                                             // function
+}
+
+// This function takes a String and returns one
+fn takes_and_gives_back(a_string: String) -&gt; String { // a_string comes into
+                                                      // scope
+
+    a_string  // a_string is returned and moves out to the calling function
+}</code></pre></pre>
+
+<p><span class="caption">Listado 4-4: Transferencia de la propiedad de la devolución
+valores</span></p>
+
+<p>La propiedad de una variable sigue siempre el mismo patrón: asignar una
+el valor a otra variable lo mueve. Cuando una variable que incluye datos sobre
+el montón queda fuera de su alcance, el valor se eliminará gota a <code>gota</code>, a menos que la propiedad
+si los datos se han trasladado a otra variable</p>.
+
+<p>Si bien esto funciona, tomar la propiedad y luego devolverla con cada
+la función es un poco tediosa. ¿Qué pasa si queremos dejar que una función use un valor pero
+¿no tomar posesión? Es bastante molesto que cualquier cosa que aprobemos también deba hacerlo
+se transferirá si queremos volver a usarlo, además de cualquier dato resultante
+del cuerpo de la función que también queramos devolver.</p>
+
+<p>Rust nos permite devolver varios valores usando una tupla, como se muestra en el Listado 4-5.</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let s1 = String::from("hello");
+
+    let (s2, len) = calculate_length(s1);
+
+    println!("The length of '{}' is {}.", s2, len);
+}
+
+fn calculate_length(s: String) -&gt; (String, usize) {
+    let length = s.len(); // len() returns the length of a String
+
+    (s, length)
+}</code></pre></pre>
+
+<p><span class="caption">Listado 4-5: Devolución de la propiedad de los parámetros</span></p>
+
+<p>Pero esto es demasiada ceremonia y mucho trabajo para un concepto que debería ser
+común. Por suerte para nosotros, Rust tiene una función para usar un valor sin
+transferir la propiedad, lo que se denomina <em>referencias</em>.</p>

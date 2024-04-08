@@ -1,0 +1,48 @@
+
+
+<h2 id="comments"><a class="header" href="#comments">Comentarios</a></h2>
+
+<p>Todos los programadores se esfuerzan por hacer que su código sea fácil de entender, pero a veces
+se justifica una explicación adicional. <em>En estos casos, los programadores dejan comentarios en</em>
+su código fuente, que el compilador ignorará, pero la gente lee el código fuente
+el código puede resultar útil</p>.
+
+<p>He aquí un comentario sencillo:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// hello, world
+<span class="boring">}</span></code></pre></pre>
+
+<p>En Rust, el estilo de comentario idiomático comienza un comentario con dos barras, y el
+el comentario continúa hasta el final de la línea. Para comentarios que van más allá de un
+una sola línea, tendrás que incluir<code>//</code>en cada línea, de la siguiente manera:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// So we’re doing something complicated here, long enough that we need
+// multiple lines of comments to do it! Whew! Hopefully, this comment will
+// explain what’s going on.
+<span class="boring">}</span></code></pre></pre>
+
+<p>Los comentarios también se pueden colocar al final de las líneas que contienen código:</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let lucky_number = 7; // I’m feeling lucky today
+}</code></pre></pre>
+
+<p>Pero verás que se utilizan con más frecuencia en este formato, con el comentario en un
+línea separada por encima del código que está anotando</p>:
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    // I’m feeling lucky today
+    let lucky_number = 7;
+}</code></pre></pre>
+
+<p>Rust también tiene otro tipo de comentario, los comentarios de documentación, que veremos
+discutiremos en la <a href="ch14-02-publishing-to-crates-io.html">sección «Publicar una caja en Crates.io</a>» <!-- ignore -->
+sección del capítulo 14.</p>

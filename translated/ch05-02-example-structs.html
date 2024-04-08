@@ -1,0 +1,339 @@
+
+
+<h2 id="an-example-program-using-structs"><a class="header" href="#an-example-program-using-structs">Un ejemplo de programa que usa estructuras</a></h2>
+
+<p>Para entender cuándo es posible que queramos usar estructuras, escribamos un programa que
+calcula el área de un rectángulo. Empezaremos usando variables individuales, y
+luego refactoriza el programa hasta que usemos estructuras en su lugar.</p>
+
+<p>Hagamos un nuevo proyecto binario con Cargo llamado <em>rectángulos</em> que ocupará
+la anchura y la altura de un rectángulo especificadas en píxeles y calculamos el área
+del rectángulo. El listado 5-8 muestra un programa corto con una forma de hacerlo
+exactamente eso en <em>src/main.rs</em> de nuestro proyecto</p>.
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let width1 = 30;
+    let height1 = 50;
+
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        area(width1, height1)
+    );
+}
+
+fn area(width: u32, height: u32) -&gt; u32 {
+    width * height
+}</code></pre></pre>
+
+<p><span class="caption">Listado 5-8: Calcular el área de un rectángulo
+especificado por variables de ancho y alto separadas</span></p>
+
+<p>Ahora, ejecuta este programa usando <code>cargo run</code>:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling rectangles v0.1.0 (file:///projects/rectangles)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.42s
+     Running `target/debug/rectangles`
+The area of the rectangle is 1500 square pixels.
+</code></pre>
+
+<p>Este código logra calcular el área del rectángulo llamando al
+función de <code>área</code> con cada dimensión, pero podemos hacer más para aclarar este código
+y legible.</p>
+
+<p>El problema con este código es evidente en la firma del <code>área</code>:</p>
+
+<pre><code class="language-rust ignore"><span class="boring">fn main() {
+</span><span class="boring">    let width1 = 30;
+</span><span class="boring">    let height1 = 50;
+</span><span class="boring">
+</span><span class="boring">    println!(
+</span><span class="boring">        "The area of the rectangle is {} square pixels.",
+</span><span class="boring">        area(width1, height1)
+</span><span class="boring">    );
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn area(width: u32, height: u32) -&gt; u32 {
+<span class="boring">    width * height
+</span><span class="boring">}</span></code></pre>
+
+<p>Se supone que la función <code>área</code> calcula el área de un rectángulo, pero el
+la función que escribimos tiene dos parámetros, y no está claro en ninguna parte de nuestro
+programa que los parámetros están relacionados. Sería más legible y más
+manejable para agrupar el ancho y el alto. Ya hemos discutido una forma
+podríamos hacerlo en la sección <a href="ch03-02-data-types.html#the-tuple-type">«El tipo de tupla»</a> <!-- ignore -->
+del capítulo 3: mediante el uso de tuplas</p>.
+
+<h3 id="refactoring-with-tuples"><a class="header" href="#refactoring-with-tuples">Refactorización con tuplas</a></h3>
+
+<p>El listado 5-9 muestra otra versión de nuestro programa que usa tuplas.</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let rect1 = (30, 50);
+
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        area(rect1)
+    );
+}
+
+fn area(dimensions: (u32, u32)) -&gt; u32 {
+    dimensions.0 * dimensions.1
+}</code></pre></pre>
+
+<p><span class="caption">Listado 5-9: Especificar la anchura y la altura del
+rectángulo con una tupla</span></p>
+
+<p>En cierto modo, este programa es mejor. Las tuplas nos permiten añadir un poco de estructura, y
+ahora estamos aprobando un solo argumento. Pero de otra manera, esta versión es menor
+claro: las tuplas no nombran sus elementos, así que tenemos que indexarlos según las partes de
+la tupla, lo que hace que nuestro cálculo sea menos obvio</p>.
+
+<p>Mezclar el ancho y la altura no importaría para el cálculo del área, pero si
+queremos dibujar el rectángulo en la pantalla, ¡importaría! Tendríamos que
+ten en cuenta que el <code>ancho</code> es el índice <code>0</code> de la tupla y la <code>altura</code> es la tupla
+<code>índice 1.</code> Esto sería aún más difícil de entender para otra persona y mantenerlo
+ten en cuenta si usaran nuestro código. Porque no hemos transmitido el significado de
+nuestros datos en nuestro código, ahora es más fácil introducir errores</p>.
+
+<h3 id="refactoring-with-structs-adding-more-meaning"><a class="header" href="#refactoring-with-structs-adding-more-meaning">Refactorización con estructuras: agregar más significado</a></h3>
+
+<p>Usamos estructuras para agregar significado etiquetando los datos. Podemos transformar la tupla
+lo estamos usando en una estructura con un nombre para el conjunto, así como nombres para el
+partes, como se muestra en el Listado 5-10</p>.
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        area(&amp;rect1)
+    );
+}
+
+fn area(rectangle: &amp;Rectangle) -&gt; u32 {
+    rectangle.width * rectangle.height
+}</code></pre></pre>
+
+<p><span class="caption">Listado 5-10: Definición de una estructura <code>rectangular</code></span></p>
+
+<p>Aquí hemos definido una estructura y la hemos llamado <code>Rectangle</code>. Dentro del rizo
+entre corchetes, definimos los campos como <code>ancho</code> <code>y alto</code>, los cuales tienen
+escriba <code>u32</code>. <code>Luego, <code>principalmente</code>, creamos una instancia particular de Rectangle</code>
+que tiene una anchura de <code>30</code> y una altura de <code>50</code>.</p>
+
+<p>Nuestra función de <code>área</code> ahora está definida con un parámetro, al que hemos denominado
+<code>rectángulo</code><code>, cuyo tipo es un préstamo inmutable de una estructura: rectángulo</code>
+instancia. Como se mencionó en el capítulo 4, queremos tomar prestada la estructura en lugar de
+tomar posesión de ella. De esta manera, <code>main</code> conserva su propiedad y puede continuar
+usando <code>rect1</code>, que es la razón por la que usamos la <code>&</code> en la firma de la función y
+donde llamamos a la función.</p>
+
+<p><code>La función de <code>área</code> accede a los campos de <code>ancho</code> <code>y alto</code> del rectángulo</code>
+instancia (tenga en cuenta que el acceso a los campos de una instancia de estructura prestada no
+mueve los valores de los campos, por lo que a menudo se ven préstamos de estructuras). Nuestro
+La firma de función para el <code>área</code> ahora dice exactamente lo que queremos decir: calcular el área
+del <code>rectángulo</code>, usando sus campos de <code>ancho</code> <code>y alto</code>. Esto indica que el
+la anchura y la altura están relacionadas entre sí, y da nombres descriptivos a
+los valores en lugar de utilizar los valores de índice de tupla de <code>0</code> y <code>1</code>. Esto es un
+gane por claridad.</p>
+
+<h3 id="adding-useful-functionality-with-derived-traits"><a class="header" href="#adding-useful-functionality-with-derived-traits">Agregar funciones útiles con rasgos derivados</a></h3>
+
+<p>Sería útil poder imprimir una instancia de <code>Rectangle</code> mientras estamos
+depurando nuestro programa y viendo los valores de todos sus campos. Listar de 5 a 11 intentos
+¡usando la <a href="../std/macro.println.html"><code>impresión!</code> </a>macro <!-- ignore --> como la que hemos usado en
+capítulos anteriores. Sin embargo, esto no funcionará.</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><code class="language-rust ignore does_not_compile">struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+
+    println!("rect1 is {}", rect1);
+}</code></pre>
+
+<p><span class="caption"><code>Listado 5-11: Intentando imprimir un rectángulo</code>
+instancia</span></p>
+
+<p>Cuando compilamos este código, aparece un error con este mensaje principal:</p>
+
+<pre><code class="language-text">error[E0277]: `Rectangle` doesn't implement `std::fmt::Display`
+</code></pre>
+
+<p>¡La <code>impresión!</code> La macro puede hacer muchos tipos de formato y, por defecto, el rizado
+¡Los corchetes indican que se <code>imprime!</code> usar el formato conocido como <code>Display: output</code> intended
+para el consumo directo del usuario final. Los tipos primitivos que hemos visto hasta ahora
+implementa <code>Display</code> de forma predeterminada porque solo hay una forma en la que querrías mostrar
+un <code>1</code> o cualquier otro tipo primitivo para un usuario. Pero con las estructuras, el camino
+<code>¡impresión!</code> debería formatear la salida es menos claro porque hay más
+posibilidades de visualización: ¿Quieres comas o no? ¿Quieres imprimir el
+¿corchetes rizados? ¿Deberían mostrarse todos los campos? Debido a esta ambigüedad, Rust
+no intenta adivinar lo que queremos, y las estructuras no tienen una
+implementación de <code>Display</code> para usar con <code>println!</code> y el marcador de posición <code>{}</code></p>.
+
+<p>Si seguimos leyendo los errores, encontraremos esta útil nota:</p>
+
+<pre><code class="language-text">   = help: the trait `std::fmt::Display` is not implemented for `Rectangle`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+</code></pre>
+
+<p>¡Vamos a intentarlo! ¡La <code>impresión!</code> <code>¡La macro call ahora se verá como println! («rect1 es {:?}» , rect1);.</code> <code>Poner el especificador:?</code> dentro de los corchetes rizados indica
+<code>imprimir!</code> <code>queremos usar un formato de salida llamado Debug.</code> El rasgo <code>Debug</code>
+nos permite imprimir nuestra estructura de una manera que sea útil para los desarrolladores, de modo que podamos
+ver su valor mientras depuramos nuestro código</p>.
+
+<p>Compila el código con este cambio. ¡Mierda! Sigue apareciendo un error</p>:
+
+<pre><code class="language-text">error[E0277]: `Rectangle` doesn't implement `Debug`
+</code></pre>
+
+<p>Pero, de nuevo, el compilador nos da una nota útil:</p>
+
+<pre><code class="language-text">   = help: the trait `Debug` is not implemented for `Rectangle`
+   = note: add `#[derive(Debug)]` to `Rectangle` or manually `impl Debug for Rectangle`
+</code></pre>
+
+<p>Rust <em>incluye</em> la funcionalidad para imprimir la información de depuración, pero nosotros
+tenemos que optar explícitamente para que esa funcionalidad esté disponible para nuestra estructura.
+Para ello, añadimos el atributo externo <code># [derive (Debug)] justo antes</code> del
+definición de estructura, como se muestra en el Listado 5-12</p>.
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+
+    println!("rect1 is {:?}", rect1);
+}</code></pre></pre>
+
+<p><span class="caption"><code>Listado 5-12: Agregar el atributo para derivar la depuración</code>
+rasgo e impresión de la instancia de <code>Rectangle</code> usando el</span></p> formato de depuración
+
+<p>Ahora, cuando ejecutemos el programa, no obtendremos ningún error y veremos el
+siguiente resultado:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling rectangles v0.1.0 (file:///projects/rectangles)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.48s
+     Running `target/debug/rectangles`
+rect1 is Rectangle { width: 30, height: 50 }
+</code></pre>
+
+<p>¡Bonito! No es el resultado más bonito, pero muestra los valores de todos los campos
+para este caso, lo que sin duda ayudaría durante la depuración. Cuando tengamos
+estructuras más grandes, es útil tener una salida que sea un poco más fácil de leer; en
+en esos casos, podemos usar <code>{:#?}</code> en lugar de <code>{:?</code>} ¡en la <code>imprenta!</code> cadena. En
+este ejemplo, usando el <code>{:#?</code>} el estilo generará lo siguiente:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling rectangles v0.1.0 (file:///projects/rectangles)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.48s
+     Running `target/debug/rectangles`
+rect1 is Rectangle {
+    width: 30,
+    height: 50,
+}
+</code></pre>
+
+<p>Otra forma de imprimir un valor con el formato <code>Debug</code> es usar el <a href="../std/macro.dbg.html"><code>dbg!</code>
+</a>macro <!-- ignore -->, que toma posesión de una expresión (al contrario
+para <code>imprimir!</code> , que toma una referencia), imprime el archivo y el número de línea de
+donde está ese <code>dbg!</code> la llamada macro se produce en su código junto con el valor resultante
+de esa expresión y devuelve la propiedad del valor</p>.
+
+<blockquote>
+<p>Nota: ¡Llamando al <code>dbg!</code> la macro se imprime en el flujo estándar de la consola de errores
+<code>(<code>stderr</code>), ¡a diferencia de println!</code> , que imprime en la salida estándar
+transmisión de consola (<code>salida estándar</code>). <code>Hablaremos más sobre <code>stderr y stdout en</code></code>
+<a href="ch12-06-writing-to-stderr-instead-of-stdout.html">«Escribir mensajes de error en la salida estándar en lugar de en la salida estándar»
+sección del capítulo 12</a> <!-- ignore -->.</p> </blockquote>
+
+<p>Este es un ejemplo en el que estamos interesados en el valor que se asigna al
+campo de <code>ancho</code>, así como el valor de toda la estructura en <code>rect1</code></p>:
+
+<pre><pre class="playground"><code class="language-rust">#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+fn main() {
+    let scale = 2;
+    let rect1 = Rectangle {
+        width: dbg!(30 * scale),
+        height: 50,
+    };
+
+    dbg!(&amp;rect1);
+}</code></pre></pre>
+
+<p>¡Podemos poner <code>dbg!</code> alrededor de la expresión <code>30 * scale</code> y, porque <code>dbg!</code>
+devuelve la propiedad del valor de la expresión, el campo de <code>ancho</code> obtendrá el
+¡el mismo valor que si no tuviéramos el <code>dbg!</code> llama allí. ¡No queremos <code>dbg!</code> a
+tomamos posesión de <code>rect1</code>, por lo que usaremos una referencia a <code>rect1</code> en la próxima llamada.
+Así es como se ve el resultado de este ejemplo</p>:
+
+<pre><code class="language-console">$ cargo run
+   Compiling rectangles v0.1.0 (file:///projects/rectangles)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.61s
+     Running `target/debug/rectangles`
+[src/main.rs:10] 30 * scale = 60
+[src/main.rs:14] &amp;rect1 = Rectangle {
+    width: 60,
+    height: 50,
+}
+</code></pre>
+
+<p>Podemos ver que el primer bit de la salida provino de la línea 10 de <em>src/main.rs</em>, donde estamos
+<code>depurando la <code>escala de la expresión 30 *</code>, y su valor resultante es 60 (el</code>
+El formato de <code>depuración</code> implementado para los enteros consiste en imprimir solo su valor). El
+<code>¡dbg!</code> <code>la llamada a la línea 14 de <em>src/main.rs</em> genera el valor de &rect1, que es</code>
+<code>la</code> estructura rectangular. Esta salida usa el bonito formato <code>Debug</code> del
+Tipo de <code>rectángulo</code>. ¡El <code>dbg!</code> La macro puede ser muy útil cuando intentas
+¡descubre qué está haciendo tu código!</p>
+
+<p>Además del rasgo <code>Debug</code>, Rust nos ha proporcionado varios rasgos
+para usar con el atributo de <code>derivación</code>, que puede añadir un comportamiento útil a nuestra costumbre
+tipos. Esos rasgos y sus comportamientos se enumeran en el <a href="appendix-03-derivable-traits.html">Apéndice C</a> <! --
+ignorar -->. Cubriremos cómo implementar estos rasgos con un comportamiento personalizado como
+y también cómo crear tus propios rasgos en el capítulo 10. También hay muchos
+atributos distintos de los <code>derivados</code>; para obtener más información, consulte <a href="../reference/attributes.html">la sección «Atributos»
+sección de la referencia de Rust</a>.</p>
+
+<p>Nuestra función de <code>área</code> es muy específica: solo calcula el área de los rectángulos.
+<code>Sería útil vincular este comportamiento más estrechamente a nuestra estructura rectangular</code>
+porque no funcionará con ningún otro tipo. Veamos cómo podemos continuar
+<em>refactoriza este código convirtiendo la función de <code>área</code> en un método de <code>área</code></em>
+definido en nuestro tipo de <code>rectángulo</code></p>.

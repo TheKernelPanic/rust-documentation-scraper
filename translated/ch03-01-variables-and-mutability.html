@@ -1,0 +1,236 @@
+
+
+<h2 id="variables-and-mutability"><a class="header" href="#variables-and-mutability">Variables y mutabilidad</a></h2>
+
+<p>Como se menciona en la sección <a href="ch02-00-guessing-game-tutorial.html#storing-values-with-variables">«Almacenamiento de valores con
+La <!-- ignore --> sección Variables»</a>, de forma predeterminada,
+las variables son inmutables. Este es uno de los muchos empujones que Rust te da para escribir
+su código de una manera que aproveche la seguridad y la facilidad de concurrencia que
+Ofertas de Rust. Sin embargo, aún tiene la opción de hacer que sus variables sean mutables.
+Exploremos cómo y por qué Rust te anima a favorecer la inmutabilidad y por qué
+a veces es posible que desees excluirte</p>.
+
+<p>Cuando una variable es inmutable, una vez que un valor está vinculado a un nombre, no se puede cambiar
+ese valor. Para ilustrar esto, genere un nuevo proyecto llamado <em>variables</em> en
+tu directorio de <em>proyectos</em> mediante el uso <code>de nuevas variables de cargo</code>.</p>
+
+<p>Luego, en su nuevo directorio de <em>variables</em>, abra <em>src/main.rs</em> y reemplace su
+código con el siguiente código, que aún no se compilará</p>:
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><code class="language-rust ignore does_not_compile">fn main() {
+    let x = 5;
+    println!("The value of x is: {x}");
+    x = 6;
+    println!("The value of x is: {x}");
+}</code></pre>
+
+<p>Guarda y ejecuta el programa usando <code>cargo run</code>. Deberías recibir un mensaje de error
+en relación con un error de inmutabilidad, como se muestra en este resultado</p>:
+
+<pre><code class="language-console">$ cargo run
+   Compiling variables v0.1.0 (file:///projects/variables)
+error[E0384]: cannot assign twice to immutable variable `x`
+ --&gt; src/main.rs:4:5
+  |
+2 |     let x = 5;
+  |         -
+  |         |
+  |         first assignment to `x`
+  |         help: consider making this binding mutable: `mut x`
+3 |     println!("The value of x is: {x}");
+4 |     x = 6;
+  |     ^^^^^ cannot assign twice to immutable variable
+
+For more information about this error, try `rustc --explain E0384`.
+error: could not compile `variables` due to previous error
+</code></pre>
+
+<p>En este ejemplo se muestra cómo el compilador ayuda a encontrar errores en los programas.
+Los errores del compilador pueden resultar frustrantes, pero en realidad solo afectan al programa
+todavía no está haciendo lo que quieres que haga de forma segura; <em>no</em> significan que estés
+¡no soy un buen programador! Los rustáceos experimentados todavía tienen errores de compilación.</p>
+
+<p><code>Ha recibido el mensaje de error <code>no se puede asignar dos veces a la variable inmutable x porque ha</code> intentado asignar un segundo valor a la variable x inmutable.</code></p>
+
+<p>Es importante que recibamos errores en tiempo de compilación cuando intentamos cambiar un
+valor que se designa como inmutable porque esta misma situación puede llevar a
+errores. Si una parte de nuestro código funciona bajo el supuesto de que un valor
+nunca cambia y otra parte de nuestro código cambia ese valor, es posible
+que la primera parte del código no hará lo que fue diseñado para hacer. ¿La causa
+de este tipo de error puede ser difícil de localizar después del hecho, especialmente
+cuando la segunda pieza de código cambia el valor solo <em>algunas veces</em>. El óxido
+El compilador garantiza que cuando declaras que un valor no cambiará, realmente
+no cambiará, por lo que no tiene que hacer un seguimiento usted mismo. Por lo tanto, su código es
+más fácil de razonar.</p>
+
+<p>Sin embargo, la mutabilidad puede ser muy útil y puede hacer que el código sea más cómodo de escribir.
+Aunque las variables son inmutables de forma predeterminada, puede hacerlas mutables de la siguiente manera
+<a href="ch02-00-guessing-game-tutorial.html#storing-values-with-variables">añadiendo <code>mut</code> delante del nombre de la variable como lo hiciste en el capítulo
+</a>2 <!-- ignore -->. Agregar <code>mudo</code> también transmite
+intenta que los futuros lectores del código indiquen que otras partes del código
+cambiará el valor de esta variable.</p>
+
+<p>Por ejemplo, cambiemos <em>src/main.rs</em> por lo siguiente:</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut x = 5;
+    println!("The value of x is: {x}");
+    x = 6;
+    println!("The value of x is: {x}");
+}</code></pre></pre>
+
+<p>Cuando ejecutamos el programa ahora, obtenemos esto:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling variables v0.1.0 (file:///projects/variables)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.30s
+     Running `target/debug/variables`
+The value of x is: 5
+The value of x is: 6
+</code></pre>
+
+<p>Se nos permite cambiar el valor vinculado a <code>x</code> de <code>5</code> a <code>6</code> cuando <code>mut</code> es
+usado. En última instancia, decidir si usar la mutabilidad o no depende de usted y
+depende de lo que consideres más claro en esa situación en particular</p>.
+
+<h3 id="constants"><a class="header" href="#constants">Constantes</a></h3>
+
+<p>Al igual que las variables inmutables, las <em>constantes</em> son valores que están vinculados a un nombre y
+no pueden cambiar, pero hay algunas diferencias entre las constantes
+y variables</p>.
+
+<p>En primer lugar, no puedes usar <code>mut</code> con constantes. Las constantes no son solo
+inmutables por defecto; siempre son inmutables. Las constantes se declaran utilizando el
+<em>la palabra clave <code>const</code> en lugar de la palabra clave <code>let</code>, y el tipo del valor debe</em>
+estar anotado. En la siguiente sección trataremos los tipos y las anotaciones de tipos,
+<a href="ch03-02-data-types.html#data-types">«Tipos de datos»</a> <!-- ignore -->, así que no te preocupes por los detalles
+ahora mismo. Solo debes saber que siempre debes anotar el tipo</p>.
+
+<p>Las constantes se pueden declarar en cualquier ámbito, incluido el ámbito global, lo que hace
+son útiles para valores que muchas partes del código necesitan conocer</p>.
+
+<p>La última diferencia es que las constantes solo se pueden establecer en una expresión constante,
+no es el resultado de un valor que solo se puede calcular en</p> tiempo de ejecución.
+
+<p>Este es un ejemplo de una declaración constante:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>const THREE_HOURS_IN_SECONDS: u32 = 60 * 60 * 3;
+<span class="boring">}</span></code></pre></pre>
+
+<p>El nombre de la constante es <code>THREE_HOURS_IN_SECONDS</code> y su valor se establece en
+resultado de multiplicar 60 (el número de segundos en un minuto) por 60 (el número
+de minutos en una hora) por 3 (el número de horas que queremos contar en esto
+programa). La convención de nomenclatura de Rust para las constantes es usar todas las mayúsculas con
+guiones bajos entre palabras. El compilador puede evaluar un conjunto limitado de
+operaciones en tiempo de compilación, lo que nos permite elegir escribir este valor en un
+de manera que sea más fácil de entender y verificar, en lugar de establecer esta constante
+al valor de 10.800. Consulte la <a href="../reference/const_eval.html">sección de Rust Reference sobre constantes
+</a>evaluación para obtener más información sobre qué operaciones se pueden usar
+al declarar constantes.</p>
+
+<p>Las constantes son válidas durante todo el tiempo que se ejecuta un programa, dentro del alcance de
+en el que fueron declaradas. Esta propiedad hace que las constantes sean útiles para los valores de
+el dominio de su aplicación que varias partes del programa podrían necesitar conocer
+acerca de, por ejemplo, la cantidad máxima de puntos que puede acumular cualquier jugador de una partida
+ganar, o la velocidad de la luz.</p>
+
+<p>Nombrar los valores codificados utilizados en todo el programa como constantes es útil en
+transmitir el significado de ese valor a los futuros mantenedores del código. También
+ayuda a tener solo un lugar en su código que tendría que cambiar si
+el valor codificado debe actualizarse en el futuro.</p>
+
+<h3 id="shadowing"><a class="header" href="#shadowing">Sombreando</a></h3>
+
+<p><a href="ch02-00-guessing-game-tutorial.html#comparing-the-guess-to-the-secret-number">Como viste en el tutorial del juego de adivinanzas del capítulo
+</a>2 <!-- ignore -->, puedes declarar un
+nueva variable con el mismo nombre que la variable anterior. Los rustáceos dicen que el
+la primera variable está <em>sombreada</em> por la segunda, lo que significa que la segunda
+la variable es lo que verá el compilador cuando utilices el nombre de la variable.
+En efecto, la segunda variable eclipsa a la primera, tomando cualquier uso de
+nombre de la variable para sí misma hasta que aparezca sombreada o hasta que finalice el ámbito.
+Podemos sombrear una variable usando el nombre de la misma variable y repitiendo el
+uso de la palabra clave <code>let</code> de la siguiente manera:</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let x = 5;
+
+    let x = x + 1;
+
+    {
+        let x = x * 2;
+        println!("The value of x in the inner scope is: {x}");
+    }
+
+    println!("The value of x is: {x}");
+}</code></pre></pre>
+
+<p>Este programa primero vincula <code>x</code> a un valor de <code>5</code>. Luego crea una nueva variable
+<code>x</code> repitiendo <code>let x =</code>, tomando el valor original y sumando <code>1</code> para que
+el valor de <code>x</code> es entonces <code>6</code>. Luego, dentro de un ámbito interior creado con el rizo
+entre corchetes, la sentencia third <code>let</code> también sombrea <code>x</code> y crea una nueva
+<code>variable, multiplicando el valor anterior por <code>2</code> para dar a <code>x</code> un valor de 12.</code>
+<code>Cuando ese ámbito finaliza, el sombreado interno finaliza y <code>x</code> vuelve a ser 6.</code>
+Cuando ejecutemos este programa, generará lo siguiente:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling variables v0.1.0 (file:///projects/variables)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.31s
+     Running `target/debug/variables`
+The value of x in the inner scope is: 12
+The value of x is: 6
+</code></pre>
+
+<p>El sombreado es diferente a marcar una variable como <code>muda</code> porque obtendremos un
+error en tiempo de compilación si accidentalmente intentamos reasignarla a esta variable sin
+<code>usando la palabra clave let.</code> Al usar <code>let</code>, podemos realizar algunas transformaciones
+en un valor, pero hacer que la variable sea inmutable después de que esas transformaciones hayan
+se ha completado</p>.
+
+<p>La otra diferencia entre <code>mutar</code> y sombrear es que porque estamos
+creando de manera efectiva una nueva variable cuando volvemos a usar la palabra clave <code>let</code>, podemos
+cambiar el tipo del valor pero reutilizar el mismo nombre. Por ejemplo, digamos nuestro
+el programa le pide al usuario que muestre cuántos espacios quiere entre un texto
+ingresando caracteres de espacio, y luego queremos almacenar esa entrada como un número</p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let spaces = "   ";
+    let spaces = spaces.len();
+<span class="boring">}</span></code></pre></pre>
+
+<p>La primera variable de <code>espacios</code> es de tipo cadena y la segunda variable de <code>espacios</code>.
+es un tipo de número. Por lo tanto, el sombreado nos ahorra tener que idear
+diferentes nombres, como <code>spaces_str y <code>spaces_num</code>;</code> en su lugar, podemos reutilizar
+<code>el</code> nombre de los espacios más simple. Sin embargo, si intentamos usar <code>mut</code> para esto, como se muestra
+aquí, obtendremos un error en tiempo de compilación</p>:
+
+<pre><code class="language-rust ignore does_not_compile"><span class="boring">fn main() {
+</span>    let mut spaces = "   ";
+    spaces = spaces.len();
+<span class="boring">}</span></code></pre>
+
+<p>El error dice que no podemos mutar el tipo de una variable:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling variables v0.1.0 (file:///projects/variables)
+error[E0308]: mismatched types
+ --&gt; src/main.rs:3:14
+  |
+2 |     let mut spaces = "   ";
+  |                      ----- expected due to this value
+3 |     spaces = spaces.len();
+  |              ^^^^^^^^^^^^ expected `&amp;str`, found `usize`
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `variables` due to previous error
+</code></pre>
+
+<p>Ahora que hemos explorado cómo funcionan las variables, veamos más tipos de datos que
+pueden tener.</p>

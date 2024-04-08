@@ -1,0 +1,164 @@
+
+
+<h2 id="unrecoverable-errors-with-panic"><a class="header" href="#unrecoverable-errors-with-panic"><code>¡Errores irrecuperables con pánico!</code></a></h2>
+
+<p>A veces, ocurren cosas malas en tu código y no hay nada que puedas hacer al respecto
+eso. En estos casos, ¡Rust <code>entra en pánico!</code> macro. Hay dos formas de provocar un
+pánico en la práctica: realizando una acción que provoque el pánico en nuestro código (como
+accediendo a una matriz más allá del final) o llamando explícitamente al <code>pánico.</code> macro.
+En ambos casos, causamos pánico en nuestro programa. De forma predeterminada, estos pánicos lo harán
+imprime un mensaje de error, relájate, limpia la pila y cierra. A través de un
+variable de entorno, también puede hacer que Rust muestre la pila de llamadas cuando
+el pánico se produce para que sea más fácil localizar el origen del pánico.</p>
+
+<blockquote>
+<h3 id="unwinding-the-stack-or-aborting-in-response-to-a-panic"><a class="header" href="#unwinding-the-stack-or-aborting-in-response-to-a-panic">Desenrollar la pila o abortar en respuesta a un ataque de pánico</a></h3>
+<p>De forma predeterminada, cuando se produce un pánico, el programa comienza a <em>desenrollarse</em>, lo que
+significa que Rust vuelve a subir la pila y limpia los datos de cada función
+encuentra. Sin embargo, este regreso y limpieza es mucho trabajo. Óxido,
+por lo tanto, le permite elegir la alternativa de <em>abortar</em> inmediatamente,
+lo que finaliza el programa sin limpiarlo.</p>
+A <p>continuación, será necesario limpiar la memoria que estaba usando el programa
+instalado por el sistema operativo. Si en su proyecto necesita hacer el resultado
+binario lo más pequeño posible, puede cambiar de desenrollar a abortar tras un
+entra en pánico añadiendo <code>panic = 'abort'</code> a las secciones apropiadas de <code>[perfil]</code> en
+tu archivo <em>Cargo.toml</em>. Por ejemplo, si quieres abortar en caso de pánico durante el lanzamiento
+modo, agrega esto</p>:
+<pre><code class="language-toml">[profile.release]
+pánico = 'abortar'</code></pre> </blockquote>
+
+<p>¡Intentemos llamar al <code>pánico!</code> en un programa sencillo:</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust should_panic panics">fn main() {
+    panic!("crash and burn");
+}</code></pre></pre>
+
+<p>Cuando ejecutes el programa, verás algo parecido a esto:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling panic v0.1.0 (file:///projects/panic)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.25s
+     Running `target/debug/panic`
+thread 'main' panicked at 'crash and burn', src/main.rs:2:5
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+</code></pre>
+
+<p>¡La llamada al <code>pánico!</code> provoca el mensaje de error contenido en las dos últimas líneas.
+La primera línea muestra nuestro mensaje de pánico y el lugar de nuestro código fuente donde
+se produjo el pánico: <em>src/main.rs: 2:5</em> indica que es la segunda línea,
+</p><em>quinto carácter de nuestro archivo src/main.rs.</em>
+
+<p>En este caso, la línea indicada es parte de nuestro código, y si vamos a esa
+línea, ¡vemos el <code>pánico!</code> macro llamada. En otros casos, ¡el <code>pánico!</code> la llamada podría
+estar en el código al que llama nuestro código y el nombre del archivo y el número de línea informados por
+el mensaje de error será el código de otra persona, ¡donde <code>cunda el pánico!</code> macro es
+¡llamado, no la línea de nuestro código que eventualmente provocó el <code>pánico!</code> llamada. ¡Nosotros!
+¡Nos vendría bien el rastro de las funciones, el <code>pánico!</code> la llamada provino de la figura
+elimina la parte de nuestro código que está causando el problema. Discutiremos los retrocesos
+con más detalle a continuación</p>.
+
+¡<h3 id="using-a-panic-backtrace"><a class="header" href="#using-a-panic-backtrace">Usando <code>el pánico!</code> ¡Trace atrás!</a></h3>
+
+<p>¡Veamos otro ejemplo para ver cómo es cuando entra el <code>pánico!</code> llega una llamada
+desde una biblioteca debido a un error en nuestro código en lugar de por nuestra llamada al código
+la macro directamente. El listado 9-1 tiene un código que intenta acceder a un
+índice en un vector que está más allá del rango de índices válidos</p>.
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust should_panic panics">fn main() {
+    let v = vec![1, 2, 3];
+
+    v[99];
+}</code></pre></pre>
+
+<p><span class="caption">Listado 9-1: Intentando acceder a un elemento más allá del
+final de un vector, ¡lo que provocará que una llamada <code>entre en pánico!</code></span></p>
+
+<p>Aquí, estamos intentando acceder al elemento número 100 de nuestro vector (que está en
+índice 99 (porque la indexación comienza en cero), pero el vector solo tiene 3 elementos.
+En esta situación, Rust entrará en pánico. Se supone que el uso de <code>[]</code> devuelve un
+, pero si pasas un índice no válido, no hay ningún elemento que Rust pueda
+regresa aquí, eso sería correcto.</p>
+
+<p>En C, intentar leer más allá del final de una estructura de datos no está definido
+comportamiento. Puede obtener lo que esté en esa ubicación en la memoria que podría
+corresponder a ese elemento de la estructura de datos, aunque la memoria
+no pertenece a esa estructura. Esto se denomina <em>sobrelectura del búfer</em> y puede
+provocar vulnerabilidades de seguridad si un atacante es capaz de manipular el índice
+de tal manera que no se les debería permitir leer los datos que se almacenan después
+la estructura de datos.</p>
+
+<p>Para proteger su programa de este tipo de vulnerabilidad, si intenta leer un
+elemento de un índice que no existe, Rust detendrá la ejecución y se negará a
+continuar. Probémoslo y veamos:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling panic v0.1.0 (file:///projects/panic)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.27s
+     Running `target/debug/panic`
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 99', src/main.rs:4:5
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+</code></pre>
+
+<p>Este error apunta a la línea 4 de nuestro archivo <code>main.rs</code> donde intentamos acceder al índice
+99. La siguiente línea de nota nos dice que podemos configurar el <code>RUST_BACKTRACE</code>
+variable de entorno para obtener una pista retrospectiva de lo que ocurrió exactamente para causar la
+error. Un <em>rastreo</em> es una lista de todas las funciones a las que se ha llamado
+llegar a este punto. Los backtraces en Rust funcionan igual que en otros lenguajes: el
+la clave para leer el backtrace es empezar desde arriba y leer hasta que veas
+archivos que escribiste. Ese es el lugar donde se originó el problema. Las líneas de arriba
+ese lugar es código al que tu código ha llamado; las líneas de abajo son código que
+llamó a tu código. Estas líneas de antes y después pueden incluir el código central de Rust,
+código de biblioteca estándar o cajas que estés usando. Vamos a intentar conseguir un
+backtrace estableciendo la variable de entorno <code>RUST_BACKTRACE</code> en cualquier valor
+excepto 0. El listado 9-2 muestra un resultado similar al que verá</p>.
+
+
+
+<pre><code class="language-console">$ RUST_BACKTRACE=1 cargo run
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 99', src/main.rs:4:5
+stack backtrace:
+   0: rust_begin_unwind
+             at /rustc/e092d0b6b43f2de967af0887873151bb1c0b18d3/library/std/src/panicking.rs:584:5
+   1: core::panicking::panic_fmt
+             at /rustc/e092d0b6b43f2de967af0887873151bb1c0b18d3/library/core/src/panicking.rs:142:14
+   2: core::panicking::panic_bounds_check
+             at /rustc/e092d0b6b43f2de967af0887873151bb1c0b18d3/library/core/src/panicking.rs:84:5
+   3: &lt;usize as core::slice::index::SliceIndex&lt;[T]&gt;&gt;::index
+             at /rustc/e092d0b6b43f2de967af0887873151bb1c0b18d3/library/core/src/slice/index.rs:242:10
+   4: core::slice::index::&lt;impl core::ops::index::Index&lt;I&gt; for [T]&gt;::index
+             at /rustc/e092d0b6b43f2de967af0887873151bb1c0b18d3/library/core/src/slice/index.rs:18:9
+   5: &lt;alloc::vec::Vec&lt;T,A&gt; as core::ops::index::Index&lt;I&gt;&gt;::index
+             at /rustc/e092d0b6b43f2de967af0887873151bb1c0b18d3/library/alloc/src/vec/mod.rs:2591:9
+   6: panic::main
+             at ./src/main.rs:4:5
+   7: core::ops::function::FnOnce::call_once
+             at /rustc/e092d0b6b43f2de967af0887873151bb1c0b18d3/library/core/src/ops/function.rs:248:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+</code></pre>
+
+<p><span class="caption">Listado 9-2: El rastreo generado por una llamada a
+<code>¡pánico!</code> se muestra cuando se establece la variable de entorno <code>RUST_BACKTRACE</code></span></p>
+
+<p>¡Eso es mucho resultado! La salida exacta que ve puede ser diferente según
+en tu sistema operativo y en la versión de Rust. Para obtener retrocesos con esto
+información, los símbolos de depuración deben estar habilitados. Los símbolos de depuración están habilitados mediante
+predeterminado cuando se usa <code>cargo build</code> o <code>cargo run</code> sin el indicador <code>--release,</code>
+como lo tenemos aquí.</p>
+
+<p>En la salida del Listado 9-2, la línea 6 del backtrace apunta a la línea de nuestro
+<em>proyecto que está causando el problema: la línea 4 de src/main.rs.</em> Si no queremos
+Si nuestro programa entra en pánico, debemos iniciar nuestra investigación en el lugar indicado
+o por la primera línea que menciona un archivo que escribimos. En el Listado 9-1, donde
+escribió deliberadamente un código que provocara el pánico, la forma de solucionar el pánico es no
+solicita un elemento más allá del rango de los índices vectoriales. Cuando tu código
+si entra en pánico en el futuro, tendrás que averiguar qué acción está tomando el código
+con qué valores causan el pánico y qué debe hacer el código en su lugar</p>.
+
+<p>¡Volveremos a <code>entrar en pánico!</code> ¡y cuándo debemos y no debemos usar el <code>pánico!</code> a
+manejar las condiciones de error en la sección <a href="ch09-03-to-panic-or-not-to-panic.html#to-panic-or-not-to-panic">«¡Que <code>cunda el pánico!</code> o no hacerlo
+<code>¡pánico!</code> </a>» <!-- ignore --> sección más adelante
+capítulo. A continuación, veremos cómo recuperarnos de un error utilizando <code>Result</code>.</p>

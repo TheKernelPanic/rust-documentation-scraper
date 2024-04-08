@@ -1,0 +1,129 @@
+
+
+<h2 id="concise-control-flow-with-if-let"><a class="header" href="#concise-control-flow-with-if-let">Flujo de control conciso con <code>if let</code></a></h2>
+
+<p>La sintaxis <code>if let</code> le permite combinar <code>if</code> y <code>let</code> de una manera menos detallada para
+maneja los valores que coinciden con un patrón ignorando el resto. Considera el
+programa del Listado 6-6 que coincida con el <u8>valor de una <code>opción</code> del
+<code>la variable <code>config_max</code> pero solo quiere ejecutar código si el valor es Some</code>
+</p>variante.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let config_max = Some(3u8);
+    match config_max {
+        Some(max) =&gt; println!("The maximum is configured to be {}", max),
+        _ =&gt; (),
+    }
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 6-6: Una <code>partida</code> a la que solo le importa la ejecución
+<code>código cuando el valor es Some</code></span></p>
+
+<p>Si el valor es <code>Some</code>, imprimimos el valor en la variante <code>Some</code> mediante enlace
+el valor de la variable <code>max</code> en el patrón. No queremos hacer nada
+con el valor <code>Ninguno</code>. Para cumplir <code>con la expresión de coincidencia</code>, tenemos que añadir <code>_ => ()</code> después de procesar solo una variante, lo que es un código repetitivo molesto para
+agregar.</p>
+
+<p>En su lugar, podríamos escribir esto de una manera más corta usando <code>if let</code>. Lo siguiente
+el código se comporta de la misma manera que la <code>coincidencia</code> del Listado 6-6</p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let config_max = Some(3u8);
+    if let Some(max) = config_max {
+        println!("The maximum is configured to be {}", max);
+    }
+<span class="boring">}</span></code></pre></pre>
+
+<p>La sintaxis (<code>if let</code>) toma un patrón y una expresión separados por un igual
+signo. Funciona de la misma manera que una <code>coincidencia</code>, donde la expresión se asigna al
+<code>coincide</code> y el patrón es su primer brazo. En este caso, el patrón es
+<code>Some (max)</code>, y el <code>máximo</code> se une al valor dentro del <code>Some</code>. Entonces podemos
+usa <code>max</code> en el cuerpo del bloque <code>if let</code> de la misma manera que usamos <code>max</code> in
+el brazo de <code>cerilla</code> correspondiente. El código del bloque <code>if let</code> no se ejecuta si el
+el valor no coincide con el patrón.</p>
+
+<p>Usar <code>if let</code> significa menos escritura, menos indentación y menos código repetitivo.
+<code>Sin embargo, se pierde la comprobación exhaustiva que exige la coincidencia.</code> Eligiendo
+entre <code>el partido</code> y <code>si se deja</code> depende de lo que estés haciendo en tu particular
+situación y si ganar concisión es una compensación adecuada para
+</p>perder un control exhaustivo.
+
+<p>En otras palabras, puede pensar en <code>si let</code> como azúcar de sintaxis para una <code>coincidencia</code> que
+ejecuta código cuando el valor coincide con un patrón y luego ignora todos los demás valores</p>.
+
+<p>Podemos incluir un <code>else</code> con un <code>if let</code>. El bloque de código que acompaña al
+<code>else</code> es el mismo que el bloque de código que iría con la <code>mayúscula _</code> en
+expresión de <code>coincidencia</code> que es equivalente a <code>if let</code> y <code>else</code>. Recuerde el
+Definición de enumeración de <code>monedas</code> en el Listado 6-4, donde la variante <code>trimestral</code> también contenía un
+Valor en el estado de EE. <code>UU</code>. Si quisiéramos contar todas las monedas que no sean de veinticinco centavos, veremos mientras también
+<code>anunciando el estado de los cuartos, podríamos hacerlo con una partida</code>
+expresión, como esta:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#[derive(Debug)]
+</span><span class="boring">enum UsState {
+</span><span class="boring">    Alabama,
+</span><span class="boring">    Alaska,
+</span><span class="boring">    // --snip--
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">enum Coin {
+</span><span class="boring">    Penny,
+</span><span class="boring">    Nickel,
+</span><span class="boring">    Dime,
+</span><span class="boring">    Quarter(UsState),
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let coin = Coin::Penny;
+</span>    let mut count = 0;
+    match coin {
+        Coin::Quarter(state) =&gt; println!("State quarter from {:?}!", state),
+        _ =&gt; count += 1,
+    }
+<span class="boring">}</span></code></pre></pre>
+
+<p>O podríamos usar una expresión <code>if let</code> y <code>else</code>, como esta:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#[derive(Debug)]
+</span><span class="boring">enum UsState {
+</span><span class="boring">    Alabama,
+</span><span class="boring">    Alaska,
+</span><span class="boring">    // --snip--
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">enum Coin {
+</span><span class="boring">    Penny,
+</span><span class="boring">    Nickel,
+</span><span class="boring">    Dime,
+</span><span class="boring">    Quarter(UsState),
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let coin = Coin::Penny;
+</span>    let mut count = 0;
+    if let Coin::Quarter(state) = coin {
+        println!("State quarter from {:?}!", state);
+    } else {
+        count += 1;
+    }
+<span class="boring">}</span></code></pre></pre>
+
+<p>Si tiene una situación en la que su programa tiene una lógica demasiado detallada para
+expresa usando una <code>coincidencia</code>, recuerda que <code>si let</code> también está en tu caja de herramientas de Rust</p>.
+
+<h2 id="summary"><a class="header" href="#summary">Resumen</a></h2>
+
+<p>Ahora hemos explicado cómo usar las enumeraciones para crear tipos personalizados que pueden ser uno de
+conjunto de valores enumerados. <code>Hemos mostrado cómo la opción de la biblioteca estándar</code> <T>
+type te ayuda a usar el sistema de tipos para evitar errores. Cuando los valores de enumeración tienen
+los datos que contienen, puedes usar <code>Match</code> o <code>if let</code> para extraerlos y usarlos
+valores, según la cantidad de casos que necesite manejar.</p>
+
+<p>Sus programas de Rust ahora pueden expresar conceptos en su dominio mediante estructuras y
+enumeraciones. La creación de tipos personalizados para usarlos en su API garantiza la seguridad de los tipos:
+el compilador se asegurará de que sus funciones solo obtengan valores del tipo cada una
+la función espera</p>.
+
+<p>Para proporcionar una API bien organizada a sus usuarios, eso es sencillo.
+para usarla y solo expone exactamente lo que sus usuarios necesitarán, pasemos ahora a
+Los módulos de Rust</p>.

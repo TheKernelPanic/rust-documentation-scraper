@@ -1,0 +1,194 @@
+
+
+<h2 id="defining-modules-to-control-scope-and-privacy"><a class="header" href="#defining-modules-to-control-scope-and-privacy">Definición de módulos para controlar el alcance y la privacidad</a></h2>
+
+<p>En esta sección, hablaremos sobre los módulos y otras partes del sistema de módulos,
+es decir, <em>rutas</em> que permiten nombrar elementos; la palabra clave <code>use</code> que trae un
+la ruta hacia el alcance; y la palabra clave <code>pub</code> para hacer públicos los artículos. También discutiremos
+la palabra clave <code>as</code>, los paquetes externos y el operador global</p>.
+
+<p>En primer lugar, vamos a empezar con una lista de reglas para consultarlas fácilmente cuando estés
+organizar tu código en el futuro. A continuación, explicaremos cada una de las reglas en
+detalle.</p>
+
+<h3 id="modules-cheat-sheet"><a class="header" href="#modules-cheat-sheet">Hoja de referencia de módulos</a></h3>
+
+<p>Aquí proporcionamos una referencia rápida sobre cómo <code>utilizan</code> los módulos, las rutas, la palabra clave y
+la palabra clave <code>pub</code> funciona en el compilador y cómo la mayoría de los desarrolladores organizan sus
+código. Vamos a ver ejemplos de cada una de estas reglas a lo largo de este
+capítulo, pero este es un buen lugar para consultar como recordatorio de cómo funcionan los módulos
+funcionan.</p>
+
+<ul>
+<li>
+<strong>Comience desde la raíz de la caja</strong>: al compilar una caja, el compilador primero
+busca en el archivo raíz de la caja (normalmente <em>src/lib.rs</em>) una caja de biblioteca o
+<em>src/main.rs</em></li> (para una caja binaria) para compilar el código.
+<li>
+<strong>Declaración de módulos</strong>: en el archivo raíz de la caja, puede declarar nuevos módulos;
+Por ejemplo, declaras un módulo de «jardín» con el <code>mod garden;.</code> El compilador buscará
+para el código del módulo en estos lugares:
+<ul>
+<li><code>En línea, entre corchetes que sustituyen al punto y coma siguiendo el jardín de mods</code></li>
+<li><em>En el archivo src/garden.rs</em></li>
+<li><em>En el archivo src/garden/mod.rs</em></li> </ul> </li>
+<li>
+<strong>Declaración de submódulos</strong>: en cualquier archivo que no sea la raíz de la caja, puede
+declarar submódulos. Por ejemplo, puede declarar <code>verduras modificadas;</code> en
+<em>src/garden.rs</em>. El compilador buscará el código del submódulo dentro del
+directorio con el nombre del módulo principal en estos lugares:
+<ul>
+<li>En línea, siguiendo directamente a las <code>verduras del molde</code>, en su lugar entre corchetes rizados
+</li>del punto y coma
+<li><em>En el archivo src/garden/vegetables.rs</em></li>
+<li>En el archivo <em>src/garden/vegetables/mod.rs</em></li> </ul> </li>
+<li>
+<strong>Rutas al código en los módulos</strong>: una vez que un módulo forma parte de su caja, puede
+hacer referencia al código de ese módulo desde cualquier otro lugar de la misma caja, siempre que
+según lo permitan las reglas de privacidad, utilizando la ruta al código. Por ejemplo, un
+El tipo de <code>espárragos</code> del módulo de hortalizas se encuentra en
+<code>crate: :garden: :vegetables: :Espárragos.</code></li>
+<li>
+<strong>Privado o público</strong>: el código de un módulo es privado respecto a su elemento principal
+módulos por defecto. Para hacer público un módulo, declárelo con <code>pub mod</code>
+en lugar de <code>mod</code>. Para que los elementos de un módulo público también sean públicos, usa
+<code>publicar</code> antes de sus declaraciones.</li>
+<li>
+<strong>La palabra clave <code>use</code></strong>: dentro de un ámbito, la palabra clave <code>use</code> crea atajos para
+elementos para reducir la repetición de rutas largas. En cualquier ámbito que pueda referirse a
+<code>crate: :garden: :vegetables: :Asparagus</code>, puedes crear un acceso directo con <code>use crate: :garden: :vegetables: :Asparagus; y a partir de ese</code> momento solo necesitarás
+escribe <code>Asparagus para usar ese</code> tipo en el ámbito</li>. </ul>
+
+<p>Aquí creamos una caja binaria llamada <code>patio trasero</code> que ilustra estas reglas. El
+El directorio de crate, también denominado <code>backyard</code>, contiene los siguientes archivos y directorios</p>:
+
+<pre><code class="language-text">backyard
+├── Cargo.lock
+├── Cargo.toml
+└── src
+    ├── garden
+    │   └── vegetables.rs
+    ├── garden.rs
+    └── main.rs
+</code></pre>
+
+<p>El archivo raíz de la caja en este caso es <em>src/main.rs</em> y contiene:</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><code class="language-rust noplayground ignore">use crate::garden::vegetables::Asparagus;
+
+pub mod garden;
+
+fn main() {
+    let plant = Asparagus {};
+    println!("I'm growing {:?}!", plant);
+}</code></pre>
+
+<p>La línea <code>pub mod garden;</code> le dice al compilador que incluya el código que encuentre en
+<em>src/garden.rs</em></p>, que es:
+
+<p><span class="filename">Nombre del archivo: src/garden.rs</span></p>
+
+<pre><code class="language-rust noplayground ignore">pub mod vegetables;</code></pre>
+
+<p>Aquí, <code>pub mod vegetables;</code> significa que el código en <em>src/garden/vegetables.rs</em> es
+incluido también. Ese código es:</p>
+
+<pre><code class="language-rust noplayground ignore">#[derive(Debug)]
+pub struct Asparagus {}</code></pre>
+
+<p>¡Ahora veamos los detalles de estas reglas y demostremos en acción!</p>
+
+<h3 id="grouping-related-code-in-modules"><a class="header" href="#grouping-related-code-in-modules">Agrupación de código relacionado en módulos</a></h3>
+
+<p><em>Los módulos</em> nos permiten organizar el código dentro de una caja para facilitar la lectura y la reutilización.
+Los módulos también nos permiten controlar la <em>privacidad</em> de los elementos, ya que el código está dentro de un
+el módulo es privado por defecto. Los elementos privados son detalles de implementación interna
+no están disponibles para uso externo. Podemos optar por fabricar los módulos y los artículos
+dentro de ellos son públicos, lo que los expone para permitir que el código externo los use y dependa
+sobre ellos.</p>
+
+<p>Como ejemplo, escribamos una caja de biblioteca que proporcione la funcionalidad de un
+restaurante. Definiremos las firmas de las funciones, pero dejaremos sus cuerpos
+vacío para concentrarnos en la organización del código, en lugar de en
+implementación de un restaurante.</p>
+
+<p>En la industria de los restaurantes, algunas partes de un restaurante se denominan
+<em>frente de la casa</em> y otras como <em>parte trasera de la casa</em>. El frente de la casa es dónde
+están los clientes; esto abarca dónde se sientan los anfitriones, los clientes y los servidores
+pedidos y pagos, y los camareros preparan bebidas. En la parte trasera de la casa es donde
+los chefs y cocineros trabajan en la cocina, los lavaplatos limpian y los gerentes lo hacen
+trabajo administrativo.</p>
+
+<p>Para estructurar nuestra caja de esta manera, podemos organizar sus funciones en anidadas
+módulos. <em>Crea una nueva biblioteca llamada <code>restaurant</code> ejecutando <code>cargo new restaurant --lib</code>; luego ingresa el código del Listado 7-1 en src/lib.rs para</em>
+defina algunos módulos y firmas de funciones. Esta es la sección principal de la sala:</p>
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust noplayground">mod front_of_house {
+    mod hosting {
+        fn add_to_waitlist() {}
+
+        fn seat_at_table() {}
+    }
+
+    mod serving {
+        fn take_order() {}
+
+        fn serve_order() {}
+
+        fn take_payment() {}
+    }
+}</code></pre>
+
+<p><span class="caption">Listado 7-1: Un módulo <code>front_of_house</code> que contiene otros
+módulos que luego contienen funciones</span></p>
+
+<p>Definimos un módulo con la palabra clave <code>mod</code> seguida del nombre del módulo
+(en este caso, <code>front_of_house</code>). El cuerpo del módulo pasa entonces al interior de Curly
+corchetes. Dentro de los módulos, podemos colocar otros módulos, como en este caso con
+módulos <code>de alojamiento</code> y <code>servicio</code>. Los módulos también pueden contener definiciones para otros
+elementos, como estructuras, enumeraciones, constantes, características y, como en Listing
+7-1: funciones.</p>
+
+<p>Mediante el uso de módulos, podemos agrupar las definiciones relacionadas y decir por qué
+están relacionados. Los programadores que utilizan este código pueden navegar por el código basándose en
+grupos en lugar de tener que leer todas las definiciones, lo que facilita
+para encontrar las definiciones que les conciernen. Programadores que añaden nuevas funcionalidades
+a este código sabría dónde colocar el código para mantener el programa organizado</p>.
+
+<p><em>Anteriormente, mencionamos que <em>src/main.rs y src/lib.rs</em> se denominan crate</em>
+raíces. El motivo de su nombre es que el contenido de cualquiera de estos dos
+los archivos forman un módulo llamado <code>crate</code> en la raíz de la estructura de módulos de la caja,
+conocido como árbol de <em>módulos</em></p>.
+
+<p>El Listado 7-2 muestra el árbol de módulos de la estructura del Listado 7-1.</p>
+
+<pre><code class="language-text">crate
+ └── front_of_house
+     ├── hosting
+     │   ├── add_to_waitlist
+     │   └── seat_at_table
+     └── serving
+         ├── take_order
+         ├── serve_order
+         └── take_payment
+</code></pre>
+
+<p><span class="caption">Listado 7-2: El árbol de módulos para el código del Listado
+7-1</span></p>
+
+<p>Este árbol muestra cómo algunos de los módulos se anidan unos dentro de otros; por ejemplo,
+<code>alojando</code> nidos dentro de <code>front_of_house</code>. El árbol también muestra que algunos módulos
+son <em>hermanos</em> entre sí, lo que significa que están definidos en el mismo módulo;
+<code>hospedar</code> y <code>servir</code> son hermanos definidos en <code>front_of_house</code>. Si es un módulo
+A está contenido dentro del módulo B, decimos que el módulo A es el <em>hijo</em> del módulo B
+y que el módulo B es el <em>principal</em> del módulo A. Observe que todo el módulo
+el árbol tiene sus raíces en el módulo implícito llamado <code>crate</code></p>.
+
+<p>El árbol de módulos puede recordarle el árbol de directorios del sistema de archivos en su
+ordenador; ¡esta es una comparación muy acertada! Al igual que los directorios de un sistema de archivos,
+usas módulos para organizar tu código. Y al igual que los archivos de un directorio,
+necesitamos una forma de encontrar nuestros módulos.</p>

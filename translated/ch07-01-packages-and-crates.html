@@ -1,0 +1,70 @@
+
+
+<h2 id="packages-and-crates"><a class="header" href="#packages-and-crates">Paquetes y cajas</a></h2>
+
+<p>Las primeras partes del sistema de módulos que trataremos son los paquetes y las cajas.</p>
+
+<p>Una <em>caja</em> es la cantidad más pequeña de código que el compilador de Rust considera en un
+tiempo. Incluso si ejecutas <code>rustc</code> en lugar de <code>cargo</code> y pasas un solo código fuente
+archivo (como hicimos en la sección «Cómo escribir y ejecutar un programa en Rust»
+sección del capítulo 1), el compilador considera que ese archivo es una caja. Cajas
+puede contener módulos y los módulos pueden definirse en otros archivos que obtengan
+compilados con la caja, como veremos en las próximas secciones</p>.
+
+<p>Una caja puede tener dos formas: una caja binaria o una caja de biblioteca.
+Las <em>cajas binarias</em> son programas que se pueden compilar en un ejecutable que se puede ejecutar,
+como un programa de línea de comandos o un servidor. Cada uno debe tener una función llamada
+<code>principal</code> que define lo que ocurre cuando se ejecuta el ejecutable. Todas las cajas que tenemos
+creadas hasta ahora han sido cajas binarias.</p>
+
+<p><em>Las cajas de biblioteca</em> no tienen una función <code>principal</code> y no se compilan en
+ejecutable. En su lugar, definen la funcionalidad destinada a compartirse con
+múltiples proyectos. <a href="ch02-00-guessing-game-tutorial.html#generating-a-random-number">Por ejemplo, la caja <code>grande</code> que usamos en el capítulo 2
+</a>2 <!-- ignore --> proporciona una funcionalidad que genera números aleatorios.
+La mayoría de las veces, cuando los rustáceos dicen «caja», se refieren a la caja de la biblioteca, y
+usan «caja» indistintamente con el concepto general de programación</p> de una «biblioteca».
+
+<p>La <em>raíz de la caja</em> es un archivo fuente desde el que parte el compilador de Rust y crea
+sube el módulo raíz de tu caja (explicaremos los módulos en profundidad en el
+<a href="ch07-02-defining-modules-to-control-scope-and-privacy.html">«Definición de módulos para controlar el alcance y la privacidad»</a> <!-- ignore -->
+sección).</p>
+
+<p>Un <em>paquete</em> es un conjunto de una o más cajas que proporciona un conjunto de
+funcionalidad. Un paquete contiene un archivo <em>Cargo.toml</em> que describe cómo
+construye esas cajas. La carga es en realidad un paquete que contiene la caja binaria
+para la herramienta de línea de comandos que has estado usando para compilar tu código. La carga
+El paquete también contiene una caja de biblioteca de la que depende la caja binaria. ¿Otros
+los proyectos pueden depender de la caja de la biblioteca Cargo para utilizar la misma lógica que Cargo
+usa la herramienta de línea de comandos</p>.
+
+<p>Un paquete puede contener tantas cajas binarias como quieras, pero como máximo solo una
+caja de biblioteca. Un paquete debe contener al menos una caja, ya sea una
+biblioteca o caja binaria</p>.
+
+<p>Veamos lo que ocurre cuando creamos un paquete. Primero, ingresamos al
+command <code>cargo new</code>:</p>
+
+<pre><code class="language-console">$ cargo new my-project
+     Created binary (application) `my-project` package
+$ ls my-project
+Cargo.toml
+src
+$ ls my-project/src
+main.rs
+</code></pre>
+
+<p>Después de ejecutar <code>cargo new</code>, usamos <code>ls</code> para ver qué crea Cargo. En el proyecto
+en el directorio, hay un archivo <em>Cargo.toml</em> que nos da un paquete. También hay un
+directorio <em>src</em> que contiene <em>main.rs</em>. Abre <em>Cargo.toml</em> en tu editor de texto,
+<em>y tenga en cuenta que no se menciona src/main.rs.</em> Cargo sigue una convención que
+<em>src/main.rs</em> es la raíz de una caja binaria con el mismo nombre que la
+paquete. Del mismo modo, Cargo sabe que si el directorio de paquetes contiene
+<em>src/lib.rs</em>, el paquete contiene una caja de biblioteca con el mismo nombre que el
+y <em>src/lib.rs</em> es la raíz de su caja. Cargo pasa los archivos raíz de la caja
+a <code>rustc</code> para construir la biblioteca o el binario</p>.
+
+<p>Aquí tenemos un paquete que solo contiene <em>src/main.rs</em>, lo que significa que solo
+<code>contiene una caja binaria llamada my-project.</code> <em>Si un paquete contiene src/main.rs</em>
+y <em>src/lib.rs</em>, tiene dos cajas: una binaria y una biblioteca, ambas con el mismo
+nombre como el paquete. Un paquete puede tener varias cajas binarias colocando archivos
+en el directorio <em>src/bin</em>: cada archivo será una caja binaria independiente</p>.

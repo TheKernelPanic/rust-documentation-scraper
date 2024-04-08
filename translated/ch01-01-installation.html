@@ -1,0 +1,136 @@
+
+
+<h2 id="installation"><a class="header" href="#installation">Instalación</a></h2>
+
+<p>El primer paso es instalar Rust. Descargaremos Rust a través de <code>rustup, un</code>
+herramienta de línea de comandos para administrar las versiones de Rust y las herramientas asociadas. Necesitarás
+una conexión a internet para la descarga.</p>
+
+<blockquote>
+<p>Nota: Si prefieres no usar <code>rustup</code> por alguna razón, consulta la
+La <a href="https://forge.rust-lang.org/infra/other-installation-methods.html">página Otros métodos de instalación de Rust</a> para obtener más opciones</p>. </blockquote>
+
+<p>Los pasos siguientes instalan la última versión estable del compilador de Rust.
+Las garantías de estabilidad de Rust garantizan que todos los ejemplos del libro que
+compile seguirá compilándose con las versiones más recientes de Rust. La salida podría
+difieren ligeramente entre las versiones porque Rust a menudo mejora los mensajes de error y
+advertencias. En otras palabras, cualquier versión nueva y estable de Rust que instales usando
+estos pasos deberían funcionar según lo esperado con el contenido de este libro.</p>
+
+<blockquote>
+<h3 id="command-line-notation"><a class="header" href="#command-line-notation">Notación de línea de comandos</a></h3>
+<p>En este capítulo y a lo largo del libro, mostraremos algunos de los comandos que se utilizan en
+terminal. Todas las líneas que debes introducir en una terminal comienzan por <code>$</code>. Tú
+no necesitas escribir el carácter <code>$</code>; es la línea de comandos que se muestra a
+indica el inicio de cada comando. Por lo general, las líneas que no comienzan por <code>$</code>
+muestran el resultado del comando anterior. Además, es específico de PowerShell
+</p><code>los ejemplos usarán <code>></code> en lugar de $.</code> </blockquote>
+
+<h3 id="installing-rustup-on-linux-or-macos"><a class="header" href="#installing-rustup-on-linux-or-macos">Instalación de <code>rustup</code> en Linux o macOS</a></h3>
+
+<p>Si utilizas Linux o macOS, abre una terminal e introduce el siguiente comando:</p>
+
+<pre><code class="language-console">$ curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
+</code></pre>
+
+<p>El comando descarga un script e inicia la instalación del <code>rustup</code>
+herramienta, que instala la última versión estable de Rust. Es posible que se le pregunte
+para tu contraseña. Si la instalación se realiza correctamente, aparecerá la siguiente línea:</p>
+
+<pre><code class="language-text">Rust is installed now. Great!
+</code></pre>
+
+<p>También necesitarás un <em>enlazador</em>, que es un programa que Rust usa para unir sus
+salidas compiladas en un solo archivo. Es probable que ya tengas uno. Si obtienes
+errores de vinculación, debe instalar un compilador de C, que normalmente incluirá un
+enlazador. Un compilador de C también es útil porque algunos paquetes comunes de Rust dependen de
+Codifica en C y necesitará un compilador en C.</p>
+
+<p>En macOS, puedes obtener un compilador de C ejecutando:</p>
+
+<pre><code class="language-console">$ xcode-select --install
+</code></pre>
+
+<p>Los usuarios de Linux generalmente deberían instalar GCC o Clang, según sus
+documentación de la distribución. Por ejemplo, si usas Ubuntu, puedes instalar
+el paquete <code>build-essential</code></p>.
+
+<h3 id="installing-rustup-on-windows"><a class="header" href="#installing-rustup-on-windows">Instalación de <code>rustup</code> en Windows</a></h3>
+
+<p>En Windows, vaya a <a href="https://www.rust-lang.org/tools/install">https://www.rust-lang.org/tools/install</a> y siga
+las instrucciones para instalar Rust. En algún momento de la instalación, podrás
+recibirás un mensaje en el que se te explica que también necesitarás las herramientas de compilación de MSVC para
+Visual Studio 2013 o posterior</p>.
+
+<p>Para adquirir las herramientas de compilación, necesitará instalar <a href="https://visualstudio.microsoft.com/downloads/">Visual Studio
+</a>2022. Cuando se le pregunte qué cargas de trabajo instalar, incluya:</p>
+
+<ul>
+<li>«Desarrollo de escritorio con C++»</li>
+<li>El SDK de Windows 10 u 11</li>
+<li>El componente del paquete de idioma inglés, junto con cualquier otro paquete de idioma de
+tu elección</li></ul>
+
+<p>El resto de este libro usa comandos que funcionan tanto en <em>cmd.exe</em> como en PowerShell.
+Si hay diferencias específicas, explicaremos cuáles usar</p>.
+
+<h3 id="troubleshooting"><a class="header" href="#troubleshooting">Solución de problemas</a></h3>
+
+<p>Para comprobar si tienes Rust instalado correctamente, abre un shell e introduce esto
+línea:</p>
+
+<pre><code class="language-console">$ rustc --version
+</code></pre>
+
+<p>Deberías ver el número de versión, el hash de confirmación y la fecha de confirmación de la última
+versión estable que se ha publicado, en el siguiente formato:</p>
+
+<pre><code class="language-text">rustc x.y.z (abcabcabc yyyy-mm-dd)
+</code></pre>
+
+<p>Si ve esta información, ¡ha instalado Rust correctamente! Si no lo haces
+consulta esta información, comprueba que Rust esté en tu variable de sistema <code>%PATH%</code> como
+sigue.</p>
+
+<p>En Windows CMD, utilice:</p>
+
+<pre><code class="language-console">&gt; echo %PATH%
+</code></pre>
+
+<p>En PowerShell, utilice:</p>
+
+<pre><code class="language-powershell">&gt; echo $env:Path
+</code></pre>
+
+<p>En Linux y macOS, usa:</p>
+
+<pre><code class="language-console">$ echo $PATH
+</code></pre>
+
+<p>Si todo es correcto y Rust sigue sin funcionar, hay una serie de
+lugares donde puede obtener ayuda. Descubra cómo ponerse en contacto con otros rustáceos (a)
+apodo tonto (nos llamamos a nosotros mismos) en <a href="https://www.rust-lang.org/community">la página de la comunidad</a></p>.
+
+<h3 id="updating-and-uninstalling"><a class="header" href="#updating-and-uninstalling">Actualización y desinstalación</a></h3>
+
+<p>Una vez que Rust se instala a través de <code>rustup</code>, la actualización a una versión recién lanzada es
+fácil. Desde tu shell, ejecuta el siguiente script de actualización:</p>
+
+<pre><code class="language-console">$ rustup update
+</code></pre>
+
+<p>Para desinstalar Rust y <code>rustup</code>, ejecuta el siguiente script de desinstalación desde tu
+</p>shell:
+
+<pre><code class="language-console">$ rustup self uninstall
+</code></pre>
+
+<h3 id="local-documentation"><a class="header" href="#local-documentation">Documentación local</a></h3>
+
+<p>La instalación de Rust también incluye una copia local de la documentación, por lo que
+que puedes leerla sin conexión. Ejecute <code>rustup doc</code> para abrir la documentación local
+en tu navegador.</p>
+
+<p>Cada vez que la biblioteca estándar proporciona un tipo o una función y tú no
+Si estás seguro de lo que hace o cómo usarlo, usa la interfaz de programación de aplicaciones
+¡Documentación (API) para averiguarlo!</p>

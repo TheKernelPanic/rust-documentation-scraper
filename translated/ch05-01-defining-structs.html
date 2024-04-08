@@ -1,0 +1,395 @@
+
+
+<h2 id="defining-and-instantiating-structs"><a class="header" href="#defining-and-instantiating-structs">Definición e instanciación de estructuras</a></h2>
+
+Las <p>estructuras son similares a las tuplas, discutidas en <a href="ch03-02-data-types.html#the-tuple-type">«El tipo de tupla</a>» <! --
+ignore la sección -->, ya que ambas contienen varios valores relacionados. Al igual que las tuplas, las
+las piezas de una estructura pueden ser de diferentes tipos. A diferencia de las tuplas, en una estructura
+nombrarás cada dato para que quede claro lo que significan los valores. Agregando estos
+los nombres significan que las estructuras son más flexibles que las tuplas: no tienes que confiar
+según el orden de los datos para especificar o acceder a los valores de una instancia</p>.
+
+<p>Para definir una estructura, introducimos la palabra clave <code>struct</code> y asignamos un nombre a toda la estructura. A
+el nombre de la estructura debe describir la importancia de los datos que son
+agrupados. Luego, entre corchetes, definimos los nombres y tipos de
+los datos, que llamamos <em>campos</em>. Por ejemplo, el Listado 5-1 muestra un
+estructura que almacena información sobre una cuenta de usuario</p>.
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">struct User {
+    active: bool,
+    username: String,
+    email: String,
+    sign_in_count: u64,
+}
+<span class="boring">
+</span><span class="boring">fn main() {}</span></code></pre></pre>
+
+<p><span class="caption">Listado 5-1: Una definición de estructura <code>de usuario</code></span></p>
+
+<p>Para usar una estructura después de haberla definido, creamos una <em>instancia</em> de esa estructura
+especificando valores concretos para cada uno de los campos. Creamos una instancia mediante
+<em>indicando el nombre de la estructura y luego añadiendo corchetes que contengan la clave:
+pares de valores</em>, donde las claves son los nombres de los campos y los valores son
+datos que queremos almacenar en esos campos. No tenemos que especificar los campos en
+el mismo orden en el que los declaramos en la estructura. En otras palabras, el
+La definición de estructura es como una plantilla general para el tipo, y las instancias se rellenan
+en esa plantilla con datos particulares para crear valores del tipo. Para
+Por ejemplo, podemos declarar a un usuario en particular como se muestra en el Listado 5-2</p>.
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">struct User {
+</span><span class="boring">    active: bool,
+</span><span class="boring">    username: String,
+</span><span class="boring">    email: String,
+</span><span class="boring">    sign_in_count: u64,
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn main() {
+    let user1 = User {
+        active: true,
+        username: String::from("someusername123"),
+        email: String::from("someone@example.com"),
+        sign_in_count: 1,
+    };
+}</code></pre></pre>
+
+<p><span class="caption"><code>Listado 5-2: Creación de una instancia del usuario</code>
+Estructura</span></p>
+
+<p>Para obtener un valor específico de una estructura, utilizamos la notación de puntos. Por ejemplo, para
+para acceder a la dirección de correo electrónico de este usuario, utilizamos <code>user1.email</code>. Si la instancia es
+mutable, podemos cambiar un valor usando la notación de puntos y asignándolo a
+campo en particular. <code>El listado 5-3 muestra cómo cambiar el valor del correo electrónico</code>
+campo de una instancia de <code>usuario</code> mutable</p>.
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">struct User {
+</span><span class="boring">    active: bool,
+</span><span class="boring">    username: String,
+</span><span class="boring">    email: String,
+</span><span class="boring">    sign_in_count: u64,
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn main() {
+    let mut user1 = User {
+        active: true,
+        username: String::from("someusername123"),
+        email: String::from("someone@example.com"),
+        sign_in_count: 1,
+    };
+
+    user1.email = String::from("anotheremail@example.com");
+}</code></pre></pre>
+
+<p><span class="caption">Listado 5-3: Cambiar el valor en el campo de <code>correo electrónico</code> de un
+<code>Instancia de usuario</code></span></p>
+
+<p>Tenga en cuenta que toda la instancia debe ser mutable; Rust no nos permite marcar
+solo ciertos campos como mutables. Como ocurre con cualquier expresión, podemos construir una nueva
+instancia de la estructura como última expresión en el cuerpo de la función para
+devuelve implícitamente esa nueva instancia</p>.
+
+<code>El listado 5-4 muestra una función <code>build_user</code> que devuelve una instancia de usuario con</code> <p>
+el correo electrónico y el nombre de usuario dados. El campo <code>activo</code> obtiene el valor <code>verdadero</code> y
+</p><code>el <code>sign_in_count</code> obtiene un valor de 1.</code>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">struct User {
+</span><span class="boring">    active: bool,
+</span><span class="boring">    username: String,
+</span><span class="boring">    email: String,
+</span><span class="boring">    sign_in_count: u64,
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn build_user(email: String, username: String) -&gt; User {
+    User {
+        active: true,
+        username: username,
+        email: email,
+        sign_in_count: 1,
+    }
+}
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let user1 = build_user(
+</span><span class="boring">        String::from("someone@example.com"),
+</span><span class="boring">        String::from("someusername123"),
+</span><span class="boring">    );
+</span><span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 5-4: Una función <code>build_user</code> que recibe un correo electrónico
+</span></p><code>y el nombre de usuario y devuelve una instancia de usuario</code>
+
+<p>Tiene sentido nombrar los parámetros de la función con el mismo nombre que la estructura
+campos, pero tener que repetir los nombres de los campos de <code>correo electrónico</code> y <code>nombre de usuario</code> y
+las variables son un poco tediosas. Si la estructura tuviera más campos, repitiendo cada nombre
+sería aún más molesto. ¡Por suerte, hay una taquigrafía práctica</p>!
+
+
+
+<p><a id="using-the-field-init-shorthand-when-variables-and-fields-have-the-same-name"></a></p>
+
+<h3 id="using-the-field-init-shorthand"><a class="header" href="#using-the-field-init-shorthand">Uso de la abreviatura Field Init</a></h3>
+
+<p>Porque los nombres de los parámetros y los nombres de los campos de la estructura son exactamente los mismos en
+En el listado 5-4, podemos usar la sintaxis <em>abreviada field init</em> para reescribir
+<code>build_user</code> para que se comporte exactamente igual pero no tenga la repetición de
+<code>nombre de usuario</code> y <code>correo electrónico</code>, como se muestra</p> en el Listado 5-5.
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">struct User {
+</span><span class="boring">    active: bool,
+</span><span class="boring">    username: String,
+</span><span class="boring">    email: String,
+</span><span class="boring">    sign_in_count: u64,
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn build_user(email: String, username: String) -&gt; User {
+    User {
+        active: true,
+        username,
+        email,
+        sign_in_count: 1,
+    }
+}
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let user1 = build_user(
+</span><span class="boring">        String::from("someone@example.com"),
+</span><span class="boring">        String::from("someusername123"),
+</span><span class="boring">    );
+</span><span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 5-5: Una función <code>build_user</code> que usa field init
+<code>abreviatura porque los parámetros de nombre de <code>usuario y correo electrónico tienen el mismo nombre</code> que</code>
+campos de estructura</span></p>
+
+<p>Aquí, estamos creando una nueva instancia de la estructura <code>User</code>, que tiene un campo
+<code>correo electrónico</code> con nombre. Queremos establecer el valor del campo de <code>correo electrónico</code> en el valor del
+parámetro de <code>correo electrónico</code> de la función <code>build_user</code>. <code>Porque el campo de correo electrónico y</code>
+el parámetro de <code>correo electrónico</code> tiene el mismo nombre, solo necesitamos escribir <code>correo electrónico</code> en su lugar
+que <code>correo electrónico: correo electrónico</code>.</p>
+
+<h3 id="creating-instances-from-other-instances-with-struct-update-syntax"><a class="header" href="#creating-instances-from-other-instances-with-struct-update-syntax">Creación de instancias a partir de otras instancias con la sintaxis de actualización de estructuras</a></h3>
+
+<p>Suele ser útil crear una nueva instancia de una estructura que incluya la mayoría de
+los valores de otra instancia, pero cambia algunos. Puedes hacerlo usando
+<em>sintaxis de actualización de estructuras</em></p>.
+
+<p>Primero, en el Listado 5-6 mostramos cómo crear una nueva instancia <code>de usuario</code> en <code>user2</code>
+regularmente, sin la sintaxis de actualización. Hemos establecido un nuevo valor para el <code>correo electrónico</code>, pero
+de lo contrario, usa los mismos valores del <code>usuario1</code> que creamos en el Listado 5-2</p>.
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">struct User {
+</span><span class="boring">    active: bool,
+</span><span class="boring">    username: String,
+</span><span class="boring">    email: String,
+</span><span class="boring">    sign_in_count: u64,
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn main() {
+    // --snip--
+<span class="boring">
+</span><span class="boring">    let user1 = User {
+</span><span class="boring">        email: String::from("someone@example.com"),
+</span><span class="boring">        username: String::from("someusername123"),
+</span><span class="boring">        active: true,
+</span><span class="boring">        sign_in_count: 1,
+</span><span class="boring">    };
+</span>
+    let user2 = User {
+        active: user1.active,
+        username: user1.username,
+        email: String::from("another@example.com"),
+        sign_in_count: user1.sign_in_count,
+    };
+}</code></pre></pre>
+
+<p><span class="caption">Listado 5-6: Creación de una nueva instancia <code>de usuario</code> usando una de
+los valores del <code>usuario1</code></span></p>
+
+<p>Al usar la sintaxis de actualización de estructuras, podemos lograr el mismo efecto con menos código, ya que
+mostrado en el Listado 5-7. La sintaxis<code>..</code> especifica que los campos restantes no
+el conjunto explícito debe tener el mismo valor que los campos de la instancia dada.</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">struct User {
+</span><span class="boring">    active: bool,
+</span><span class="boring">    username: String,
+</span><span class="boring">    email: String,
+</span><span class="boring">    sign_in_count: u64,
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn main() {
+    // --snip--
+<span class="boring">
+</span><span class="boring">    let user1 = User {
+</span><span class="boring">        email: String::from("someone@example.com"),
+</span><span class="boring">        username: String::from("someusername123"),
+</span><span class="boring">        active: true,
+</span><span class="boring">        sign_in_count: 1,
+</span><span class="boring">    };
+</span>
+    let user2 = User {
+        email: String::from("another@example.com"),
+        ..user1
+    };
+}</code></pre></pre>
+
+<p><span class="caption">Listado 5-7: Uso de la sintaxis de actualización de estructuras para establecer una nueva
+valor de <code>correo electrónico</code> para una instancia de <code>usuario</code>, pero para usar el resto de los valores de
+<code>usuario1</code></span></p>
+
+<p>El código del Listado 5-7 también crea una instancia en <code>user2</code> que tiene un
+un valor diferente para el <code>correo electrónico</code> pero tiene los mismos valores para el <code>nombre de usuario</code>,
+<code>campos active</code> <code>y <code>sign_in_count</code> del usuario1.</code> <code>El.. user1 debe ser el último</code>
+para especificar que los campos restantes deben obtener sus valores del
+campos correspondientes en el <code>usuario1</code>, pero podemos optar por especificar valores para como
+tantos campos como queramos en cualquier orden, independientemente del orden de los campos
+la definición de la estructura</p>.
+
+<p>Tenga en cuenta que la sintaxis de actualización de estructuras usa <code>=</code> como una asignación; esto se debe a
+mueve los datos, tal como vimos en la sección <a href="ch04-01-what-is-ownership.html#variables-and-data-interacting-with-move">«Variables y datos que interactúan con
+<!-- ignore --> Sección «Mover»</a>. En este ejemplo, ya no podemos usar
+<code>user1</code> en su conjunto después de crear el <code>user2</code> porque la <code>cadena</code> en
+<code>el campo <code>de nombre de usuario</code> del <code>usuario1</code> se movió al usuario2.</code> <code>Si le hubiéramos dado al usuario 2 un nuevo</code>
+Valores <code>de cadena</code> para el <code>correo electrónico</code> y el nombre de <code>usuario</code> y, por lo tanto, solo usábamos el
+<code>valores <code>active</code> y <code>sign_in_count</code> del usuario1, entonces el <code>usuario1 seguiría</code> siendo</code>
+válido después de <code>crear</code> el usuario 2. Tanto <code>active</code> como <code>sign_in_count son tipos que</code>
+<a href="ch04-01-what-is-ownership.html#stack-only-data-copy">implementan el rasgo <code>Copy</code>, por lo tanto, el comportamiento que analizamos en la sección «Stack-Only
+Se aplicaría la <!-- ignore --> sección Datos: copiar.</a></p>
+
+<h3 id="using-tuple-structs-without-named-fields-to-create-different-types"><a class="header" href="#using-tuple-structs-without-named-fields-to-create-different-types">Uso de estructuras de tuplas sin campos con nombre para crear diferentes tipos</a></h3>
+
+<p>Rust también admite estructuras que tienen un aspecto similar a las tuplas, llamadas estructuras de <em>tuplas</em>.
+Las estructuras de tuplas tienen el significado adicional que proporciona el nombre de la estructura, pero no tienen
+nombres asociados a sus campos; más bien, solo tienen los tipos de
+campos. Las estructuras de tuplas son útiles cuando quieres darle un nombre a toda la tupla
+y hacer que la tupla sea de un tipo diferente al de otras tuplas, y al nombrar cada una
+un campo como en una estructura normal sería detallado o redundante</p>.
+
+<p>Para definir una estructura de tuplas, comienza con la palabra clave <code>struct</code> y el nombre de la estructura
+seguido de los tipos de la tupla. Por ejemplo, aquí definimos y utilizamos dos
+</p><code>estructuras de tuplas denominadas <code>Color y Point</code>:</code>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">struct Color(i32, i32, i32);
+struct Point(i32, i32, i32);
+
+fn main() {
+    let black = Color(0, 0, 0);
+    let origin = Point(0, 0, 0);
+}</code></pre></pre>
+
+<p>Tenga en cuenta que los valores de <code>negro</code> y de <code>origen</code> son de tipos diferentes porque son
+instancias de diferentes estructuras de tuplas. Cada estructura que definas es de su propio tipo,
+aunque los campos de la estructura puedan tener los mismos tipos. Para
+Por ejemplo, una función que toma un parámetro de tipo <code>Color</code> no puede tomar un
+<code>Señale</code> como argumento, aunque ambos tipos estén compuestos por tres <code>i32</code>
+valores. De lo contrario, las instancias de estructuras de tuplas son similares a las tuplas en el sentido de que puedes
+<code>destrúyelos en sus piezas individuales, y puedes usar un.</code> seguido
+por el índice para acceder a un valor individual.</p>
+
+<h3 id="unit-like-structs-without-any-fields"><a class="header" href="#unit-like-structs-without-any-fields">Estructuras tipo unidad sin ningún campo</a></h3>
+
+<p>¡También puedes definir estructuras que no tengan campos! Estas se llaman
+<em>estructuras similares a unidades</em> porque se comportan de manera similar a <code>()</code>, el tipo de unidad que
+lo mencionamos en la sección <a href="ch03-02-data-types.html#the-tuple-type">«El tipo de tupla</a>». <!-- ignore --> Como una unidad
+las estructuras pueden ser útiles cuando necesitas implementar un rasgo en algún tipo, pero no lo haces
+tiene cualquier dato que desee almacenar en el propio tipo. Discutiremos los rasgos
+en el capítulo 10. Este es un ejemplo de cómo declarar e instanciar una estructura unitaria
+<code>llamado AlwayEqual:</code></p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">struct AlwaysEqual;
+
+fn main() {
+    let subject = AlwaysEqual;
+}</code></pre></pre>
+
+<p>Para definir <code>AlwaySequal</code>, utilizamos la palabra clave <code>struct</code>, el nombre que queremos y
+luego un punto y coma. ¡Sin necesidad de corchetes ni paréntesis! Entonces podemos obtener un
+instancia de <code>AlwaySqual</code> en la variable de <code>sujeto</code> de una manera similar: usando
+nombre que definimos, sin corchetes ni paréntesis. Imagínate eso más tarde
+implementaremos un comportamiento para este tipo de manera que cada instancia de
+<code>AlwaySequal</code> es siempre igual a todas las instancias de cualquier otro tipo, tal vez
+tener un resultado conocido para fines de prueba. No necesitaríamos ningún dato para
+¡implementa ese comportamiento! Verás en el capítulo 10 cómo definir rasgos y
+impleméntalos en cualquier tipo, incluidas las estructuras similares a unidades</p>.
+
+<blockquote>
+<h3 id="ownership-of-struct-data"><a class="header" href="#ownership-of-struct-data">Propiedad de los datos de estructura</a></h3>
+<p><code>En la definición <code>de estructura de usuario</code> del Listado 5-1, utilizamos la cadena propia</code>
+en lugar del tipo de segmento de cadena <code>&str</code>. Se trata de una elección deliberada
+porque queremos que cada instancia de esta estructura sea propietaria de todos sus datos y para
+esos datos sean válidos mientras toda la estructura sea válida.</p>
+<p>También es posible que las estructuras almacenen referencias a datos que pertenecen a algo
+otra cosa, pero para hacerlo se requiere el uso de <em>lifetimes</em>, una función de Rust que utilizaremos
+discutiremos en el capítulo 10. La vida útil garantiza que los datos estén referenciados por una estructura
+es válido mientras la estructura lo sea. Supongamos que intentas almacenar una referencia
+en una estructura sin especificar tiempos de vida, como la siguiente; esto no funcionará</p>:
+<p><span class="filename">Nombre de archivo: src/main.rs</span></p>
+<-- NO SE PUEDE EXTRAER, CONSULTE https://github.com/rust-lang/mdBook/issues/1127 -->
+<pre><code class="language-rust ignore does_not_compile">Estructura: Usuario {
+ activo: bool,
+ nombre de usuario: &str,
+ correo electrónico: &str,
+ sign_in_count: u64,
+}
+
+fn main () {
+ let user1 = Usuario {
+ activo: verdadero,
+ nombre de usuario: «someusername123",
+ correo electrónico: "someone@example.com «,
+ sign_in_count: 1,
+ };
+</code></pre>}
+<p>El compilador se quejará de que necesita especificadores de por vida:</p>
+<pre><code class="language-console">$ cargo run
+ Compilación de estructuras v0.1.0 (file: ///projects/structs)
+error [E0106]: falta el especificador de vida
+ --> src/main.rs: 3:15
+ |
+3 | nombre de usuario: &str,
+ | ^ parámetro de vida útil con nombre esperado
+ |
+ayuda: considere la posibilidad de introducir un parámetro de vida útil con nombre
+ |
+1 ~ usuario de estructura <'a> {
+2 | activo: bool,
+3 ~ nombre de usuario: &'a str,
+ |
+
+error [E0106]: falta el especificador de vida útil
+ --> src/main.rs: 4:12
+ |
+4 | correo electrónico: &str,
+ | ^ parámetro de vida útil con nombre esperado
+ |
+ayuda: considere la posibilidad de introducir un parámetro de vida útil con nombre
+ |
+1 ~ usuario de estructura <'a> {
+2 | activo: bool,
+3 | nombre de usuario: &str,
+4 ~ correo electrónico: &'a str,
+ |
+
+Para obtener más información sobre este error, prueba `rustc --explain E0106`.
+error: no se pudieron compilar</code></pre> las `estructuras` debido a 2 errores anteriores
+<p>En el capítulo 10, analizaremos cómo corregir estos errores para que puedas almacenarlos
+hace referencia a las estructuras, pero por ahora, corregiremos errores como estos usando owned
+tipos como <code>String</code> en lugar de referencias como <code>&str</code></p>. </blockquote>
+
+

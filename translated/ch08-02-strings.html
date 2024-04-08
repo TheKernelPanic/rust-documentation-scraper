@@ -1,0 +1,480 @@
+
+
+<h2 id="storing-utf-8-encoded-text-with-strings"><a class="header" href="#storing-utf-8-encoded-text-with-strings">Almacenamiento de texto codificado en UTF-8 con cadenas</a></h2>
+
+<p>Hablamos sobre las cuerdas en el capítulo 4, pero ahora las analizaremos con más profundidad.
+Los nuevos rustáceos suelen quedarse atrapados en las cuerdas para hacer una combinación de tres
+razones: la propensión de Rust a exponer posibles errores, siendo las cadenas una más
+una estructura de datos complicada de la que muchos programadores creen, y
+UTF-8. Estos factores se combinan de una manera que puede parecer difícil cuando estás
+provenientes de otros lenguajes de programación.</p>
+
+<p>Discutimos las cadenas en el contexto de las colecciones porque las cadenas son
+implementado como una colección de bytes, además de algunos métodos que proporcionan información útil
+funcionalidad cuando esos bytes se interpretan como texto. En esta sección, vamos a
+hablaremos sobre las operaciones en <code>String</code> que tienen todos los tipos de colección, como
+crear, actualizar y leer. También analizaremos las formas en que <code>String</code>
+es diferente de las otras colecciones, es decir, cómo es la indexación en una <code>cadena</code>
+se complica por las diferencias entre cómo interpretan las personas y las computadoras
+<code>Cadena</code> de datos.</p>
+
+<h3 id="what-is-a-string"><a class="header" href="#what-is-a-string">¿Qué es una cadena?</a></h3>
+
+<p>Primero definiremos lo que queremos decir con el término <em>cadena</em>. Rust solo tiene una cadena
+escriba el lenguaje principal, que es la cadena slice <code>str</code> que se ve normalmente
+en su forma prestada <code>&str.</code> En el capítulo 4, hablamos sobre los <em>cortes de cadenas</em>,
+que son referencias a algunos datos de cadenas codificados en UTF-8 almacenados en otro lugar. Cadena
+los literales, por ejemplo, se almacenan en el binario del programa y, por lo tanto, son
+cortes de cadena</p>.
+
+<p>El tipo <code>String</code>, que proporciona la biblioteca estándar de Rust en lugar de
+codificado en el lenguaje central, es un código UTF-8 que se puede cultivar, mutar, propio
+tipo de cadena. Cuando los rustáceos se refieren a «cadenas» en Rust, pueden ser
+haciendo referencia a los tipos <code>String o String</code> slice <code>&str</code>, no solo a uno
+de esos tipos. Aunque esta sección trata principalmente sobre <code>String</code>, ambos tipos son
+se usa mucho en la biblioteca estándar de Rust, y tanto en <code>String</code> como en los segmentos de cadenas
+están codificados en UTF-8</p>.
+
+<h3 id="creating-a-new-string"><a class="header" href="#creating-a-new-string">Creación de una cadena nueva</a></h3>
+
+<p><code>Muchas de las mismas operaciones disponibles con <code>Vec</code> están disponibles con String.</code> <T>
+también, porque <code>String</code> en realidad se implementa como un contenedor alrededor de un vector
+de bytes con algunas garantías, restricciones y capacidades adicionales. Un ejemplo
+<code>de una función que funciona de la misma manera con <code>Vec</code> y <code>String</code> es la nueva</code> <T>
+función para crear una instancia, que se muestra en el Listado 8-11</p>.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let mut s = String::new();
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption"><code>Listado 8-11: Creación de una cadena nueva y vacía</code></span></p>
+
+<p>Esta línea crea una nueva cadena vacía llamada <code>s</code>, en la que luego podemos cargar datos
+en. A menudo, tendremos algunos datos iniciales con los que queremos iniciar la cadena
+con. Para ello, utilizamos el método <code>to_string</code>, que está disponible en cualquier tipo
+que implementa el rasgo <code>Display</code>, como lo hacen los literales de cadena. El listado 8-12 muestra
+dos ejemplos</p>.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let data = "initial contents";
+
+    let s = data.to_string();
+
+    // the method also works on a literal directly:
+    let s = "initial contents".to_string();
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 8-12: Uso del método <code>to_string</code> para crear un
+<code>Cadena de un literal de cadena</code></span></p>
+
+<p>Este código crea una cadena que contiene el <code>contenido inicial</code>.</p>
+
+<p>También podemos usar la función <code>String: :from</code> para crear una <code>cadena a partir de una cadena</code>
+literal. El código del Listado 8-13 es equivalente al código del Listado 8-12
+</p><code>que usa to_string.</code>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let s = String::from("initial contents");
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 8-13: Uso de la función <code>String: :from</code> para crear
+una <code>cadena a partir de un literal de cadena</code></span></p>
+
+<p>Debido a que las cadenas se usan para muchas cosas, podemos usar muchos genéricos diferentes
+API para cadenas, que nos brindan muchas opciones. Algunas de ellas pueden parecer
+redundantes, ¡pero todos tienen su lugar! En este caso, <code>String: :from</code> y
+<code>to_string</code> hacen lo mismo, por lo que lo que elijas es una cuestión de estilo y
+legibilidad.</p>
+
+<p>Recuerda que las cadenas están codificadas en UTF-8, por lo que podemos incluir cualquier cadena codificada correctamente
+los datos que contienen, como se muestra en el Listado 8-14</p>.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let hello = String::from("السلام عليكم");
+    let hello = String::from("Dobrý den");
+    let hello = String::from("Hello");
+    let hello = String::from("שָׁלוֹם");
+    let hello = String::from("नमस्ते");
+    let hello = String::from("こんにちは");
+    let hello = String::from("안녕하세요");
+    let hello = String::from("你好");
+    let hello = String::from("Olá");
+    let hello = String::from("Здравствуйте");
+    let hello = String::from("Hola");
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 8-14: Almacenamiento de saludos en diferentes idiomas en
+cadenas</span></p>
+
+<p>Todos estos son valores de <code>cadena</code> válidos.</p>
+
+<h3 id="updating-a-string"><a class="header" href="#updating-a-string">Actualización de una cadena</a></h3>
+
+<p>Una <code>cadena</code> puede aumentar de tamaño y su contenido puede cambiar, al igual que el contenido
+de un <code>Vec</code><T>, si se introducen más datos en él. Además, puedes cómodamente
+¡usa el operador <code>+</code> o el <code>formato!</code> </p><code>macro para concatenar valores de cadena.</code>
+
+<h4 id="appending-to-a-string-with-push_str-and-push"><a class="header" href="#appending-to-a-string-with-push_str-and-push"><code>Agregar a una cadena con <code>push_str</code> y push</code></a></h4>
+
+<p>Podemos hacer crecer una <code>cadena</code> usando el método <code>push_str</code> para agregar un segmento de cadena,
+como se muestra en el Listado 8-15</p>.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let mut s = String::from("foo");
+    s.push_str("bar");
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption"><code>Listado 8-15: Agregar un segmento de cadena a una cadena</code>
+<code>usando el método push_str</code></span></p>
+
+<p>Tras estas dos líneas, <code>s</code> contendrá <code>foobar</code>. El método <code>push_str toma</code> un
+corte de cadena porque no necesariamente queremos tomar posesión del
+parámetro. Por ejemplo, en el código del Listado 8-16, queremos poder usar
+</p><code>s2</code> <code>después de agregar su contenido a s1.</code>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let mut s1 = String::from("foo");
+    let s2 = "bar";
+    s1.push_str(s2);
+    println!("s2 is {s2}");
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 8-16: Uso de un segmento de cadena después de agregar su
+</span></p><code>contenido de una cadena</code>
+
+<p>Si el método <code>push_str</code> tomara posesión de <code>s2</code>, no podríamos imprimir
+su valor en la última línea. Sin embargo, ¡este código funciona como esperábamos!</p>
+
+<p>El método <code>push</code> toma un único carácter como parámetro y lo añade al
+<code>Cadena</code>. <code>El listado 8-17 agrega la letra «l» a una <code>cadena</code> usando el comando push</code>
+</p>método.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let mut s = String::from("lo");
+    s.push('l');
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 8-17: Agregar un carácter a un <code>valor de cadena</code>
+<code>usando push</code></span></p>
+
+<p>Como resultado, <code>s</code> contendrá <code>lol</code>.</p>
+
+<h4 id="concatenation-with-the--operator-or-the-format-macro"><a class="header" href="#concatenation-with-the--operator-or-the-format-macro"><code>¡Concatenación con el operador <code>+</code> o el formato!</code> Macro</a></h4>
+
+<p>Con frecuencia, querrás combinar dos cadenas existentes. Una forma de hacerlo es usar
+el operador <code>+</code>, como se muestra en el Listado 8-18</p>.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let s1 = String::from("Hello, ");
+    let s2 = String::from("world!");
+    let s3 = s1 + &amp;s2; // note s1 has been moved here and can no longer be used
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 8-18: Uso del operador <code>+</code> para combinar dos
+<code>Convierte</code> los valores en un nuevo <code>valor de cadena</code></span></p>
+
+<p>La cadena <code>s3</code> contendrá <code>Hello, world!</code> . La razón por la que <code>s1</code> ya no es
+válido después de la suma, y la razón por la que usamos una referencia a <code>s2</code> tiene que ver con
+con la firma del método que se invoca cuando utilizamos el operador <code>+</code>.
+El operador <code>+</code> usa el método <code>add</code>, cuya firma se parece a
+esto:</p>
+
+<pre><code class="language-rust ignore">fn add(self, s: &amp;str) -&gt; String {</code></pre>
+
+<p>En la biblioteca estándar, verás <code>agregar</code> definido usando genéricos y asociado
+tipos. Aquí, los hemos sustituido por tipos concretos, que es lo que ocurre cuando
+llama a este método con valores de <code>cadena</code>. Hablaremos de los genéricos en el capítulo 10.
+Esta firma nos da las pistas que necesitamos para entender las partes más complicadas del
+<code>+</code> operador.</p>
+
+<p>Primero, <code>s2</code> tiene un <code>&</code>, lo que significa que estamos agregando una <em>referencia</em> del segundo
+cadena a la primera cadena. Esto se debe al parámetro <code>s</code> en la <code>adición</code>
+<code>función: solo podemos añadir un <code>&str</code> a una <code>cadena</code>; no podemos añadir dos cadenas</code>
+valores juntos. <code>Pero espere, el tipo de <code>&s2 es &String</code><code>, no &str</code>, como</code>
+<code>especificado en el segundo parámetro que se va a agregar.</code> Entonces, ¿por qué se compila el Listado 8-18</p>?
+
+<p>La razón por la que podemos usar <code>&s2</code> en la llamada para <code>agregar</code> es que el compilador
+<code>puede convertir <em>el argumento &String</em> <code>en un &str</code>.</code> <code>Cuando llamamos al add</code>
+método, Rust usa una <em>coerción de deref</em>, que aquí convierte <code>&s2 en &s2</code> <code>[..]</code> .
+Discutiremos la coerción por decisión con más profundidad en el capítulo 15. <code>Porque papá sí</code>
+si no toma posesión del parámetro <code>s</code>, <code>s2</code> seguirá siendo una <code>cadena</code> válida
+después de esta operación.</p>
+
+<p>En segundo lugar, podemos ver en la firma que <code>agregar</code> se apodera de <code>sí mismo</code>,
+porque <code>self</code> <em>no</em> tiene un <code>&</code>. Esto significa que <code>s1</code> en el Listado 8-18 será
+pasó a la llamada de <code>adición</code> y dejará de ser válida después de eso. Así que, aunque
+<code>let s3 = s1 + &s2;</code> parece que copiará ambas cadenas y creará una nueva,
+esta declaración en realidad toma posesión de <code>s1</code> y agrega una copia del contenido
+de <code>s2</code> y, a continuación, devuelve la propiedad del resultado. En otras palabras, parece
+parece que está haciendo muchas copias pero no lo hace; la implementación es más
+más eficiente que copiar.</p>
+
+<p><code>Si necesitamos concatenar varias cadenas, el comportamiento del operador +</code>
+se vuelve difícil de manejar:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let s1 = String::from("tic");
+    let s2 = String::from("tac");
+    let s3 = String::from("toe");
+
+    let s = s1 + "-" + &amp;s2 + "-" + &amp;s3;
+<span class="boring">}</span></code></pre></pre>
+
+<p><code>En este punto, habrá tres en <code>raya</code>.</code> <code><code>Con todos los signos «+» y «</code></code>
+personajes, es difícil ver lo que está pasando. Para cadenas más complicadas
+combinando, ¡podemos usar en su lugar el <code>formato!</code> macro:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let s1 = String::from("tic");
+    let s2 = String::from("tac");
+    let s3 = String::from("toe");
+
+    let s = format!("{s1}-{s2}-{s3}");
+<span class="boring">}</span></code></pre></pre>
+
+<p>Este código también establece <code>s en</code> tres en <code>raya</code>. <code>¡</code>El formato! la macro funciona como
+<code>imprimir!</code> , pero en lugar de imprimir el resultado en la pantalla, devuelve un
+<code>Cadena</code> con el contenido. ¡La versión del código que usa el <code>formato!</code> es mucho
+¡más fácil de leer y el código generado por el <code>formato!</code> macro usa referencias
+para que esta llamada no se apodere de ninguno de sus parámetros.</p>
+
+<h3 id="indexing-into-strings"><a class="header" href="#indexing-into-strings">Indexación en cadenas</a></h3>
+
+<p>En muchos otros lenguajes de programación, el acceso a caracteres individuales en un
+escribir una cadena haciendo referencia a ellos por índice es una operación válida y común. Sin embargo,
+si intentas acceder a partes de una <code>cadena</code> usando la sintaxis de indexación en Rust,
+recibirá un error. Considera que el código no es válido en el Listado 8-19</p>.
+
+<pre><code class="language-rust ignore does_not_compile"><span class="boring">fn main() {
+</span>    let s1 = String::from("hello");
+    let h = s1[0];
+<span class="boring">}</span></code></pre>
+
+<p><span class="caption">Listado 8-19: Intentando usar la sintaxis de indexación con un
+Cadena</span></p>
+
+<p>Este código generará el siguiente error:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling collections v0.1.0 (file:///projects/collections)
+error[E0277]: the type `String` cannot be indexed by `{integer}`
+ --&gt; src/main.rs:3:13
+  |
+3 |     let h = s1[0];
+  |             ^^^^^ `String` cannot be indexed by `{integer}`
+  |
+  = help: the trait `Index&lt;{integer}&gt;` is not implemented for `String`
+  = help: the following other types implement trait `Index&lt;Idx&gt;`:
+            &lt;String as Index&lt;RangeFrom&lt;usize&gt;&gt;&gt;
+            &lt;String as Index&lt;RangeFull&gt;&gt;
+            &lt;String as Index&lt;RangeInclusive&lt;usize&gt;&gt;&gt;
+            &lt;String as Index&lt;RangeTo&lt;usize&gt;&gt;&gt;
+            &lt;String as Index&lt;RangeToInclusive&lt;usize&gt;&gt;&gt;
+            &lt;String as Index&lt;std::ops::Range&lt;usize&gt;&gt;&gt;
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `collections` due to previous error
+</code></pre>
+
+<p>El error y la nota cuentan la historia: las cadenas de Rust no admiten la indexación. Pero
+¿por qué no? Para responder a esa pregunta, necesitamos analizar cómo Rust almacena las cadenas en
+memoria.</p>
+
+<h4 id="internal-representation"><a class="header" href="#internal-representation">Representación interna</a></h4>
+
+<p><code>Una <code>cadena</code> es un envoltorio sobre un Vec.</code> <u8> Veamos algunos de nuestros correctamente
+ejemplos de cadenas codificadas en UTF-8 del Listado 8-14. En primer lugar, este</p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span><span class="boring">    let hello = String::from("السلام عليكم");
+</span><span class="boring">    let hello = String::from("Dobrý den");
+</span><span class="boring">    let hello = String::from("Hello");
+</span><span class="boring">    let hello = String::from("שָׁלוֹם");
+</span><span class="boring">    let hello = String::from("नमस्ते");
+</span><span class="boring">    let hello = String::from("こんにちは");
+</span><span class="boring">    let hello = String::from("안녕하세요");
+</span><span class="boring">    let hello = String::from("你好");
+</span><span class="boring">    let hello = String::from("Olá");
+</span><span class="boring">    let hello = String::from("Здравствуйте");
+</span>    let hello = String::from("Hola");
+<span class="boring">}</span></code></pre></pre>
+
+<p>En este caso, <code>len</code> será 4, lo que significa que el vector que almacena la cadena «Hola»
+tiene una longitud de 4 bytes. Cada una de estas letras ocupa 1 byte cuando está codificada en UTF-8. El
+La siguiente línea, sin embargo, puede sorprenderle. (Tenga en cuenta que esta cadena comienza con
+la letra cirílica mayúscula Ze, no el número</p> 3.)
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span><span class="boring">    let hello = String::from("السلام عليكم");
+</span><span class="boring">    let hello = String::from("Dobrý den");
+</span><span class="boring">    let hello = String::from("Hello");
+</span><span class="boring">    let hello = String::from("שָׁלוֹם");
+</span><span class="boring">    let hello = String::from("नमस्ते");
+</span><span class="boring">    let hello = String::from("こんにちは");
+</span><span class="boring">    let hello = String::from("안녕하세요");
+</span><span class="boring">    let hello = String::from("你好");
+</span><span class="boring">    let hello = String::from("Olá");
+</span>    let hello = String::from("Здравствуйте");
+<span class="boring">    let hello = String::from("Hola");
+</span><span class="boring">}</span></code></pre></pre>
+
+<p>Si se le pregunta qué tan larga es la cuerda, podría decir 12. De hecho, la respuesta de Rust es 24:
+ese es el número de bytes que se necesitan para codificar en UTF-8 «, porque
+cada valor escalar Unicode de esa cadena ocupa 2 bytes de almacenamiento. Por lo tanto,
+un índice en los bytes de la cadena no siempre se correlacionará con un Unicode válido
+valor escalar. Para demostrarlo, considere este código de Rust no válido</p>:
+
+<pre><code class="language-rust ignore does_not_compile">let hello = "Здравствуйте";
+let answer = &amp;hello[0];</code></pre>
+
+<p>Ya sabes que la <code>respuesta</code> no será<code>,</code> la primera letra. Cuando está codificada
+en UTF-8, el primer byte de es <code><code>208</code></code> y el segundo es <code>151</code>, por lo que sería
+parece que la <code>respuesta</code> debería ser <code>208, pero <code>208</code></code> no es un carácter válido
+por sí solo. Es probable que devolver <code>208</code> no sea lo que un usuario querría si lo pidiera
+para la primera letra de esta cadena; sin embargo, ese es el único dato que tiene Rust
+tiene un índice de bytes 0. Los usuarios generalmente no quieren que se devuelva el valor en bytes, incluso
+si la cadena contiene solo letras latinas: si <code>&"hello "[0]</code> fuera un código válido
+</p><code>que devolviera el valor del byte, devolvería <code>104</code>, no h.</code>
+
+<p>La respuesta, entonces, es evitar devolver un valor inesperado y causar
+errores que podrían no descubrirse de inmediato, Rust no compila este código
+en absoluto y evita malentendidos en las primeras etapas del proceso de desarrollo</p>.
+
+<h4 id="bytes-and-scalar-values-and-grapheme-clusters-oh-my"><a class="header" href="#bytes-and-scalar-values-and-grapheme-clusters-oh-my">¡Bytes y valores escalares y clústeres de grafemas! ¡Oh, Dios mío!</a></h4>
+
+<p>Otro punto sobre UTF-8 es que en realidad hay tres formas relevantes de
+mira las cadenas desde la perspectiva de Rust: como bytes, valores escalares y grafemas
+clústeres (lo más parecido a lo que llamaríamos <em>letras</em></p>).
+
+<p>Si nos fijamos en la palabra hindi «» escrita en escritura devanagari, es
+</p><code>almacenado como un vector de valores de u8 con el siguiente aspecto:</code>
+
+<pre><code class="language-text">[224, 164, 168, 224, 164, 174, 224, 164, 184, 224, 165, 141, 224, 164, 164,
+224, 165, 135]
+</code></pre>
+
+Son <p>18 bytes y es la forma en que las computadoras almacenan estos datos en última instancia. Si nos fijamos en
+ellos como valores escalares de Unicode, que es lo que es el tipo de <code>caracteres</code> de Rust, esos
+los bytes se ven así</p>:
+
+<pre><code class="language-text">['न', 'म', 'स', '्', 'त', 'े']
+</code></pre>
+
+<p>Aquí hay seis valores de <code>caracteres</code>, pero el cuarto y el sexto no son letras:
+son signos diacríticos que no tienen sentido por sí solos. Por último, si miramos
+en forma de cúmulos de grafemas, obtendríamos lo que una persona llamaría a las cuatro letras
+que componen la palabra hindi</p>:
+
+<pre><code class="language-text">["न", "म", "स्", "ते"]
+</code></pre>
+
+<p>Rust proporciona diferentes formas de interpretar los datos de cadenas sin procesar que las computadoras
+los almacena para que cada programa pueda elegir la interpretación que necesita, sin importar
+en qué lenguaje humano se encuentran los datos.</p>
+
+<p>Una última razón por la que Rust no nos permite indexar en una <code>cadena</code> para obtener un
+El carácter es que se espera que las operaciones de indexación siempre duren un tiempo constante
+(O (1)). Pero no es posible garantizar ese rendimiento con una <code>cadena</code>,
+porque Rust tendría que recorrer el contenido desde el principio hasta el
+índice para determinar cuántos caracteres válidos había.</p>
+
+<h3 id="slicing-strings"><a class="header" href="#slicing-strings">Rebanar cuerdas</a></h3>
+
+La <p>indexación en una cadena suele ser una mala idea porque no está claro cuál es el
+el tipo de retorno de la operación de indexación de cadenas debería ser: un valor de byte, un
+un carácter, un grupo de grafemas o un segmento de cadena. Si realmente necesitas usar
+índices para crear segmentos de cadenas, por lo tanto, Rust te pide que seas más específico.</p>
+
+<p>En lugar de indexar usando <code>[]</code> con un solo número, puedes usar <code>[]</code> con un
+rango para crear un segmento de cadena que contenga determinados bytes</p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let hello = "Здравствуйте";
+
+let s = &amp;hello[0..4];
+<span class="boring">}</span></code></pre></pre>
+
+<p>Aquí, <code>s</code> será un <code>&str</code> que contiene los primeros 4 bytes de la cadena.
+Anteriormente, mencionamos que cada uno de estos caracteres tenía 2 bytes, lo que significa
+<code>s</code> <code>será.</code></p>
+
+<p>Si intentáramos cortar solo una parte de los bytes de un personaje con algo como
+<code>&hello [0.. 1]</code>, Rust entraría en pánico en tiempo de ejecución de la misma manera que si no fuera válido
+se accedió al índice en un vector</p>:
+
+<pre><code class="language-console">$ cargo run
+   Compiling collections v0.1.0 (file:///projects/collections)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.43s
+     Running `target/debug/collections`
+thread 'main' panicked at 'byte index 1 is not a char boundary; it is inside 'З' (bytes 0..2) of `Здравствуйте`', src/main.rs:4:14
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+</code></pre>
+
+<p>Debe usar los rangos para crear cortes de cadenas con precaución, ya que al hacerlo
+puede bloquear su programa.</p>
+
+<h3 id="methods-for-iterating-over-strings"><a class="header" href="#methods-for-iterating-over-strings">Métodos para iterar sobre cadenas</a></h3>
+
+<p>La mejor manera de operar con piezas de cuerdas es ser explícito acerca de si
+quieres caracteres o bytes. Para valores escalares Unicode individuales, utilice el
+<code>método chars</code>. Al llamar a <code>los caracteres</code> en «» se separan y se devuelven dos valores
+de tipo <code>char</code>, y puedes iterar sobre el resultado para acceder a cada elemento</p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>for c in "Зд".chars() {
+    println!("{c}");
+}
+<span class="boring">}</span></code></pre></pre>
+
+<p>Este código imprimirá lo siguiente:</p>
+
+<pre><code class="language-text">З
+д
+</code></pre>
+
+<p>Alternativamente, el método <code>bytes</code> devuelve cada byte sin procesar, que puede ser
+apropiado para tu dominio:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>for b in "Зд".bytes() {
+    println!("{b}");
+}
+<span class="boring">}</span></code></pre></pre>
+
+<p>Este código imprimirá los cuatro bytes que componen esta cadena:</p>
+
+<pre><code class="language-text">208
+151
+208
+180
+</code></pre>
+
+<p>Pero asegúrese de recordar que los valores escalares de Unicode válidos pueden estar compuestos por más
+más de 1 byte</p>.
+
+<p>Obtener grupos de grafemas a partir de cadenas como en el script Devanagari es
+complejo, por lo que esta funcionalidad no la proporciona la biblioteca estándar. Cajas
+están disponibles en <a href="https://crates.io/">crates.io <!-- ignore --> si este</a> es el
+funcionalidad que necesita.</p>
+
+<h3 id="strings-are-not-so-simple"><a class="header" href="#strings-are-not-so-simple">Las cuerdas no son tan simples</a></h3>
+
+<p>En resumen, las cadenas son complicadas. Los diferentes lenguajes de programación hacen
+diferentes opciones sobre cómo presentar esta complejidad al programador. Óxido
+ha optado por hacer del manejo correcto de los datos de <code>cadenas</code> el comportamiento predeterminado
+para todos los programas de Rust, lo que significa que los programadores tienen que pensar más en
+manejo de datos UTF-8 por adelantado. Esta compensación expone una mayor parte de la complejidad de
+cadenas de lo que es evidente en otros lenguajes de programación, pero le impide
+de tener que gestionar errores que involucren caracteres que no sean ASCII más adelante en su
+ciclo de vida del desarrollo.</p>
+
+<p>La buena noticia es que la biblioteca estándar ofrece una gran cantidad de funciones incorporadas.
+elimina los tipos <code>String</code> y <code>&str</code> para ayudar a gestionar estas situaciones complejas
+correctamente. Asegúrese de consultar la documentación para conocer métodos útiles como
+<code>contiene</code> para buscar en una cadena y <code>reemplazar</code> para sustituir partes de una
+cadena con otra cadena.</p>
+
+<p>Cambiemos a algo un poco menos complejo: ¡los mapas hash!</p>

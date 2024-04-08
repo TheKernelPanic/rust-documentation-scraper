@@ -1,0 +1,416 @@
+
+
+<h2 id="paths-for-referring-to-an-item-in-the-module-tree"><a class="header" href="#paths-for-referring-to-an-item-in-the-module-tree">Rutas para hacer referencia a un elemento del árbol de módulos</a></h2>
+
+<p>Para mostrar a Rust dónde encontrar un elemento en un árbol de módulos, utilizamos una ruta en el mismo
+forma en que usamos una ruta cuando navegamos por un sistema de archivos. Para llamar a una función, necesitamos
+conocer su camino.</p>
+
+<p>Un camino puede adoptar dos formas:</p>
+
+<ul>
+<li>Una <em>ruta absoluta</em> es la ruta completa que comienza desde la raíz de una caja; para el código
+desde una caja externa, la ruta absoluta comienza con el nombre de la caja y para
+</li><code>código de la caja actual, comienza con la caja literal.</code>
+<li>Una <em>ruta relativa</em> comienza desde el módulo actual y usa <code>self</code>, <code>super</code> o
+un identificador en el módulo actual.</li> </ul>
+
+<p>Tanto las rutas absolutas como las relativas van seguidas de uno o más identificadores.
+separados por dos puntos (:<code>:</code>)</p>.
+
+<p>Volviendo al Listado 7-1, supongamos que queremos llamar a la función <code>add_to_waitlist</code>.
+<code>Es lo mismo que preguntar: ¿cuál es la ruta de la función add_to_waitlist?</code>
+El Listado 7-3 contiene el Listado 7-1 con algunos de los módulos y funciones
+eliminado.</p>
+
+<p>Mostraremos dos maneras de llamar a la función <code>add_to_waitlist</code> desde una nueva función
+<code>eat_at_restaurant definido en</code> la raíz de la caja. Estas rutas son correctas, pero
+queda otro problema que impedirá que este ejemplo se compile
+tal cual. Explicaremos por qué en un momento.</p>
+
+<p>La función <code>eat_at_restaurant</code> forma parte de la API pública de nuestra caja de bibliotecas, por lo que
+<code>la marcamos con la palabra clave pub.</code> En el libro <a href="ch07-03-paths-for-referring-to-an-item-in-the-module-tree.html#exposing-paths-with-the-pub-keyword">«Exposing Paths with the <code>pub</code>»
+<!-- ignore --> En la sección Palabra clave</a>, profundizaremos en el tema <code>pub</code>.</p>
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust ignore does_not_compile">mod front_of_house {
+    mod hosting {
+        fn add_to_waitlist() {}
+    }
+}
+
+pub fn eat_at_restaurant() {
+    // Absolute path
+    crate::front_of_house::hosting::add_to_waitlist();
+
+    // Relative path
+    front_of_house::hosting::add_to_waitlist();
+}</code></pre>
+
+<p><span class="caption">Listado 7-3: Llamar a la función <code>add_to_waitlist usando</code>
+rutas absolutas</span></p> y relativas
+
+<p><code>La primera vez que llamamos a la función <code>add_to_waitlist en eat_at_restaurant</code>,</code>
+utilizamos una ruta absoluta. La función <code>add_to_waitlist</code> se define en la misma
+<code>crate como <code>eat_at_restaurant</code>, lo que significa que podemos usar la palabra clave crate para</code>
+iniciar una ruta absoluta. Luego incluimos cada uno de los módulos sucesivos hasta que
+dirígete a <code>add_to_waitlist</code>. Puedes imaginar un sistema de archivos con lo mismo
+estructura: especificaríamos la ruta <code>/front_of_house/hosting/add_to_waitlist</code> para
+<code>ejecute el programa <code>add_to_waitlist; utilice el nombre de la caja para empezar</code> desde</code>
+crate root es como usar<code>/</code>para empezar desde la raíz del sistema de archivos de tu shell</p>.
+
+<p><code>La segunda vez que llamamos a <code>add_to_waitlist en eat_at_restaurant</code>, usamos un</code>
+ruta relativa. La ruta comienza con <code>front_of_house</code>, el nombre del módulo
+<code>definido en el mismo nivel del árbol de módulos que eat_at_restaurant.</code> Aquí el
+el equivalente del sistema de archivos estaría usando la ruta
+<code>front_of_house/hosting/add_to_waitlist</code>. Empezar con el nombre de un módulo significa
+que la ruta es relativa.</p>
+
+<p>La elección de usar una ruta relativa o absoluta es una decisión que tomarás.
+en función de tu proyecto y depende de si es más probable que muevas el artículo
+código de definición por separado o junto con el código que usa el artículo.
+<code>Por ejemplo, si movemos el módulo <code>front_of_house y el eat_at_restaurant</code></code>
+<code>en un módulo llamado customer_experience, tendríamos que actualizar el</code>
+ruta absoluta a <code>add_to_waitlist</code>, pero la ruta relativa seguiría siendo válida.
+Sin embargo, si moviéramos la función <code>eat_at_restaurant</code> por separado a un módulo
+denominada <code>dining</code>, la ruta absoluta a la llamada <code>add_to_waitlist</code> seguiría siendo
+lo mismo, pero la ruta relativa tendría que actualizarse. Nuestra preferencia en general
+es especificar rutas absolutas porque es más probable que queramos mover código
+definiciones y llamadas a elementos de forma independiente entre sí.</p>
+
+¡<p>Intentemos compilar el Listado 7-3 y descubramos por qué no se compila todavía! ¡El
+el error que recibimos se muestra en el Listado 7-4</p>.
+
+<pre><code class="language-console">$ cargo build
+   Compiling restaurant v0.1.0 (file:///projects/restaurant)
+error[E0603]: module `hosting` is private
+ --&gt; src/lib.rs:9:28
+  |
+9 |     crate::front_of_house::hosting::add_to_waitlist();
+  |                            ^^^^^^^ private module
+  |
+note: the module `hosting` is defined here
+ --&gt; src/lib.rs:2:5
+  |
+2 |     mod hosting {
+  |     ^^^^^^^^^^^
+
+error[E0603]: module `hosting` is private
+  --&gt; src/lib.rs:12:21
+   |
+12 |     front_of_house::hosting::add_to_waitlist();
+   |                     ^^^^^^^ private module
+   |
+note: the module `hosting` is defined here
+  --&gt; src/lib.rs:2:5
+   |
+2  |     mod hosting {
+   |     ^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0603`.
+error: could not compile `restaurant` due to 2 previous errors
+</code></pre>
+
+<p><span class="caption">Listado 7-4: Errores del compilador al compilar el código en
+Listado 7-3</span></p>
+
+<p>Los mensajes de error dicen que el <code>alojamiento</code> del módulo es privado. En otras palabras, nosotros
+tenemos las rutas correctas para el módulo de <code>alojamiento y la lista</code> <code>add_to_waitlist</code>
+función, pero Rust no nos deja usarlos porque no tiene acceso al
+secciones privadas. En Rust, todos los elementos (funciones, métodos, estructuras, enumeraciones,
+módulos y constantes) son privados para los módulos principales de forma predeterminada. Si quieres
+para convertir un elemento como una función o estructura en privado, lo colocas en un módulo</p>.
+
+<p>Los elementos de un módulo principal no pueden usar los elementos privados dentro de los módulos secundarios, pero
+los elementos de los módulos secundarios pueden usar los elementos de sus módulos anteriores. Esto es
+porque los módulos secundarios envuelven y ocultan sus detalles de implementación, pero el hijo
+los módulos pueden ver el contexto en el que están definidos. Para continuar con nuestro
+metáfora, piense en las reglas de privacidad como si fueran la oficina administrativa de un
+restaurante: lo que sucede allí es privado para los clientes del restaurante, pero
+los gerentes de oficina pueden ver y hacer todo lo que hay en el restaurante que administran.</p>
+
+<p>Rust eligió que el sistema de módulos funcionara de esta manera para que el ocultamiento interno
+los detalles de implementación son los predeterminados. De esa manera, sabrá qué partes del
+el código interno se puede cambiar sin romper el código externo. Sin embargo, Rust da
+tienes la opción de exponer las partes internas del código de los módulos secundarios al antepasado externo
+módulos mediante el uso de la palabra clave <code>pub</code> para hacer público un elemento</p>.
+
+<h3 id="exposing-paths-with-the-pub-keyword"><a class="header" href="#exposing-paths-with-the-pub-keyword">Exponer rutas con la palabra clave <code>pub</code></a></h3>
+
+<p>Volvamos al error del Listado 7-4 que nos decía que el módulo de <code>alojamiento</code> es
+privado. Queremos que la función <code>eat_at_restaurant</code> del módulo principal tenga
+acceso a la función <code>add_to_waitlist</code> en el módulo secundario, por lo que marcamos el
+módulo <code>de alojamiento</code> con la palabra clave <code>pub</code>, como</p> se muestra en el Listado 7-5.
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust ignore does_not_compile">mod front_of_house {
+    pub mod hosting {
+        fn add_to_waitlist() {}
+    }
+}
+
+pub fn eat_at_restaurant() {
+    // Absolute path
+    crate::front_of_house::hosting::add_to_waitlist();
+
+    // Relative path
+    front_of_house::hosting::add_to_waitlist();
+}</code></pre>
+
+<p><span class="caption">Listado 7-5: Declarar el módulo <code>de alojamiento</code> como <code>pub</code> para
+<code>úsalo desde eat_at_restaurant</code></span></p>
+
+<p>Lamentablemente, el código del Listado 7-5 sigue dando como resultado un error, como se muestra en
+Listado 7-6</p>.
+
+<pre><code class="language-console">$ cargo build
+   Compiling restaurant v0.1.0 (file:///projects/restaurant)
+error[E0603]: function `add_to_waitlist` is private
+ --&gt; src/lib.rs:9:37
+  |
+9 |     crate::front_of_house::hosting::add_to_waitlist();
+  |                                     ^^^^^^^^^^^^^^^ private function
+  |
+note: the function `add_to_waitlist` is defined here
+ --&gt; src/lib.rs:3:9
+  |
+3 |         fn add_to_waitlist() {}
+  |         ^^^^^^^^^^^^^^^^^^^^
+
+error[E0603]: function `add_to_waitlist` is private
+  --&gt; src/lib.rs:12:30
+   |
+12 |     front_of_house::hosting::add_to_waitlist();
+   |                              ^^^^^^^^^^^^^^^ private function
+   |
+note: the function `add_to_waitlist` is defined here
+  --&gt; src/lib.rs:3:9
+   |
+3  |         fn add_to_waitlist() {}
+   |         ^^^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0603`.
+error: could not compile `restaurant` due to 2 previous errors
+</code></pre>
+
+<p><span class="caption">Listado 7-6: Errores del compilador al compilar el código en
+Listado 7-5</span></p>
+
+<p>¿Qué pasó? Agregar la palabra clave <code>pub</code> delante del <code>alojamiento de mods</code> hace que
+módulo público. Con este cambio, si podemos acceder a <code>front_of_house</code>, podemos
+<code>acceder al alojamiento.</code> Pero el <em>contenido</em> del <code>alojamiento</code> sigue siendo privado; haciendo que
+el módulo no hace que su contenido sea público. La palabra clave <code>pub</code> de un módulo
+solo permite que el código de sus módulos anteriores haga referencia a él, no acceda a su código interno.
+Debido a que los módulos son contenedores, no hay mucho que podamos hacer simplemente creando
+módulo público; tenemos que ir más allá y optar por hacer uno o más de los
+los elementos del módulo también son públicos.</p>
+
+<p>Los errores del Listado 7-6 dicen que la función <code>add_to_waitlist es privada</code>.
+Las reglas de privacidad se aplican a las estructuras, enumeraciones, funciones y métodos, así como
+módulos.</p>
+
+<p><code>Hagamos pública también la función <code>add_to_waitlist</code> añadiendo el pub</code>
+palabra clave antes de su definición,</p> como en el Listado 7-7.
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust noplayground test_harness">mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+    }
+}
+
+pub fn eat_at_restaurant() {
+    // Absolute path
+    crate::front_of_house::hosting::add_to_waitlist();
+
+    // Relative path
+    front_of_house::hosting::add_to_waitlist();
+}</code></pre>
+
+<p><span class="caption">Listado 7-7: Agregar la palabra clave <code>pub</code> al alojamiento de <code>mods</code>
+y <code>fn add_to_waitlist</code> nos permite llamar a la función desde
+<code>eat_at_restaurant</code></span></p>
+
+<p>¡Ahora el código se compilará! Para ver por qué agregar la palabra clave <code>pub</code> nos permite usar
+estas rutas en <code>add_to_waitlist</code> con respecto a las reglas de privacidad, veamos
+en las rutas absolutas y relativas</p>.
+
+<p>En la ruta absoluta, comenzamos con <code>crate</code>, la raíz del módulo de nuestro crate
+árbol. El módulo <code>front_of_house</code> se define en la raíz de la caja. Mientras
+<code>front_of_house</code> <code>no es público, porque la función eat_at_restaurant es</code>
+<code><code>definida en el mismo módulo que front_of_house (es decir, eat_at_restaurant</code></code>
+<code>y <code>front_of_house son hermanos), podemos referirnos a front_of_house desde</code></code>
+<code>eat_at_restaurant.</code> <code>El siguiente es el módulo de <code>alojamiento marcado con</code> pub.</code> Podemos
+acceder al módulo principal de <code>alojamiento</code>, para que podamos acceder al <code>alojamiento</code>. Por último, el
+La función <code>add_to_waitlist</code> está marcada con <code>pub</code> y podemos acceder a su función principal
+módulo, ¡así</p> que esta llamada a la función funciona!
+
+<p>En la ruta relativa, la lógica es la misma que en la ruta absoluta, excepto por
+primer paso: en lugar de partir de la raíz de la caja, la ruta comienza desde
+<code>front_of_house</code>. El módulo <code>front_of_house</code> se define dentro del mismo módulo
+como <code>eat_at_restaurant</code>, es decir, la ruta relativa a partir del módulo en el que
+<code>eat_at_restaurant está definido funciona</code>. <code>Entonces, porque hospedar y</code>
+<code>add_to_waitlist</code> están marcados con <code>pub</code>, el resto de la ruta funciona, y esto
+¡la llamada a la función es válida!</p>
+
+<p>Si planeas compartir la caja de tu biblioteca para que otros proyectos puedan usar tu código,
+tu API pública es tu contrato con los usuarios de tu caja que determina cómo
+pueden interactuar con tu código. Hay muchas consideraciones en torno a la administración
+cambios en tu API pública para que sea más fácil para las personas depender de tu
+crear. Estas consideraciones están fuera del alcance de este libro; si usted
+Si está interesado en este tema, consulte <a href="https://rust-lang.github.io/api-guidelines/">las directrices de la API de Rust</a>.</p>
+
+<blockquote>
+<h4 id="best-practices-for-packages-with-a-binary-and-a-library"><a class="header" href="#best-practices-for-packages-with-a-binary-and-a-library">Mejores prácticas para paquetes con un binario y una biblioteca</a></h4>
+<p>Mencionamos que un paquete puede contener tanto una raíz de caja <em>binaria src/main.rs</em> como
+así como una raíz de caja de la biblioteca <em>src/lib.rs</em>, y ambas cajas tendrán la
+nombre del paquete por defecto. Normalmente, paquetes con este patrón de contenido
+tanto una biblioteca como una caja binaria tendrán suficiente código en el binario
+crate para iniciar un ejecutable que invoque código con la caja de la biblioteca. Esto
+permite que otros proyectos se beneficien de la mayor funcionalidad que ofrece el paquete
+proporciona, porque el código de la caja de la biblioteca se puede compartir</p>.
+<p>El árbol de módulos debe definirse en <em>src/lib.rs</em>. Entonces, cualquier elemento público puede
+se puede usar en la caja binaria iniciando las rutas con el nombre del paquete.
+La caja binaria se convierte en usuario de la caja de la biblioteca al igual que una caja completa
+una caja externa usaría la caja de la biblioteca: solo puede usar la API pública.
+Esto te ayuda a diseñar una buena API; no solo eres el autor, también eres un
+¡cliente!</p>
+<p>En <a href="ch12-00-an-io-project.html">el capítulo 12</a> <!-- ignore -->, demostraremos esta organización
+practique con un programa de línea de comandos que contenga tanto una caja binaria
+y una caja de biblioteca</p>. </blockquote>
+
+<h3 id="starting-relative-paths-with-super"><a class="header" href="#starting-relative-paths-with-super">Iniciar rutas relativas con <code>super</code></a></h3>
+
+<p>Podemos construir rutas relativas que comiencen en el módulo principal, en lugar de
+el módulo actual o la raíz de la caja, usando <code>super</code> al principio del
+ruta. <code>Esto es como iniciar una ruta del sistema de archivos con..</code> sintaxis. Utilizando
+<code>super</code> nos permite hacer referencia a un elemento que sabemos que está en el módulo principal,
+lo que puede facilitar la reorganización del árbol de módulos cuando el módulo está cerca
+relacionado con el elemento principal, pero el elemento principal puede trasladarse a otra parte del módulo
+árbol algún día.</p>
+
+<p>Considere el código del Listado 7-8 que modela la situación en la que un chef
+corrige un pedido incorrecto y se lo presenta personalmente al cliente. El
+<code>la función <code>fix_incorrect_order definida en el módulo back_of_house</code> llama al</code>
+la función <code>deliver_order</code> se define en el módulo principal especificando la ruta a
+<code>deliver_order empezando</code></p> <code>por super:</code>
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust noplayground test_harness">fn deliver_order() {}
+
+mod back_of_house {
+    fn fix_incorrect_order() {
+        cook_order();
+        super::deliver_order();
+    }
+
+    fn cook_order() {}
+}</code></pre>
+
+<p><span class="caption">Listado 7-8: Llamar a una función usando una ruta relativa
+<code>comenzando con super</code></span></p>
+
+<p><code>La función <code>fix_incorrect_order está en el módulo back_of_house</code>, por lo que podemos</code>
+<code>usa <code>super para ir al módulo principal</code> de back_of_house, que en este caso</code>
+es <code>crate, la raíz</code>. A partir de ahí, buscamos <code>deliver_order</code> y lo encontramos.
+¡Éxito! <code>Pensamos que el módulo <code>back_of_house y la función deliver_order</code></code>
+es probable que mantengan la misma relación el uno con el otro y se emocionen
+juntos deberíamos decidir reorganizar el árbol de módulos de la caja. Por lo tanto, nosotros
+usamos <code>super</code>, por lo que tendremos menos lugares para actualizar el código en el futuro si esto
+el código se mueve a un módulo diferente.</p>
+
+<h3 id="making-structs-and-enums-public"><a class="header" href="#making-structs-and-enums-public">Hacer públicas las estructuras y las enumeraciones</a></h3>
+
+<p>También podemos usar <code>pub</code> para designar estructuras y enumeraciones como públicas, pero hay un
+algunos detalles adicionales sobre el uso de <code>pub</code> con estructuras y enumeraciones. <code>Si usamos pub</code>
+antes de la definición de una estructura, hacemos pública la estructura, pero los campos de la estructura
+seguirá siendo privado. Podemos hacer que cada campo sea público o no, caso por caso
+base. En el Listado 7-9, hemos definido una estructura pública <code>back_of_house</code>: :Breakfast
+<code>con un campo de <code>tostadas</code> público pero un campo privado de frutas de temporada.</code> Esto modela
+el caso de un restaurante donde el cliente puede elegir el tipo de pan que
+viene con la comida, pero el chef decide qué fruta acompaña a la comida
+según lo que esté en temporada y en stock. La fruta disponible cambia rápidamente, así que
+los clientes no pueden elegir la fruta ni siquiera ver qué fruta van a recibir.</p>
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust noplayground">mod back_of_house {
+    pub struct Breakfast {
+        pub toast: String,
+        seasonal_fruit: String,
+    }
+
+    impl Breakfast {
+        pub fn summer(toast: &amp;str) -&gt; Breakfast {
+            Breakfast {
+                toast: String::from(toast),
+                seasonal_fruit: String::from("peaches"),
+            }
+        }
+    }
+}
+
+pub fn eat_at_restaurant() {
+    // Order a breakfast in the summer with Rye toast
+    let mut meal = back_of_house::Breakfast::summer("Rye");
+    // Change our mind about what bread we'd like
+    meal.toast = String::from("Wheat");
+    println!("I'd like {} toast please", meal.toast);
+
+    // The next line won't compile if we uncomment it; we're not allowed
+    // to see or modify the seasonal fruit that comes with the meal
+    // meal.seasonal_fruit = String::from("blueberries");
+}</code></pre>
+
+<p><span class="caption">Listado 7-9: Una estructura con algunos campos públicos y otros
+campos privados</span></p>
+
+<p>Como el campo de <code>tostadas</code> de la estructura <code>back_of_house: :Breakfast</code> es público,
+<code>en <code>eat_at_restaurant</code> podemos escribir y leer en el campo de tostadas usando un punto</code>
+notación. Observe que no podemos usar el campo <code>seasonal_fruit</code> en
+<code>eat_at_restaurant porque seasonal_fruit</code> <code>es privado.</code> Intenta dejar de comentar el
+¡línea modificando el valor del campo <code>seasonal_fruit</code> para ver qué error aparece!</p>
+
+<p>Además, tenga en cuenta que, dado que <code>back_of_house: :Breakfast tiene un</code> campo privado, el
+struct debe proporcionar una función pública asociada que construya un
+ejemplo de <code>Breakfast</code> (aquí lo hemos llamado <code>verano</code>). Si <code>Breakfast</code> no lo hiciera
+tuviera esa función, no podríamos crear una instancia de <code>Breakfast</code> en
+<code>eat_at_restaurant</code> porque no pudimos establecer el valor de lo privado
+<code>campo seasonal_fruit</code></p> <code>en eat_at_restaurant.</code>
+
+<p>Por el contrario, si hacemos pública una enumeración, todas sus variantes son públicas. Nosotros
+solo necesitamos el <code>pub</code> antes de la palabra clave <code>enum</code>, como se muestra en el Listado 7-10</p>.
+
+<p><span class="filename">Nombre del archivo: src/lib.rs</span></p>
+
+<pre><code class="language-rust noplayground">mod back_of_house {
+    pub enum Appetizer {
+        Soup,
+        Salad,
+    }
+}
+
+pub fn eat_at_restaurant() {
+    let order1 = back_of_house::Appetizer::Soup;
+    let order2 = back_of_house::Appetizer::Salad;
+}</code></pre>
+
+<p><span class="caption">Listado 7-10: La designación de una enumeración como pública hace que todas sus
+variantes públicas</span></p>
+
+<p><code>Como hicimos pública la <code>enumeración de aperitivos</code>, podemos usar la <code>sopa y la ensalada</code></code>
+</p><code>variantes en eat_at_restaurant.</code>
+
+<p>Las enumeraciones no son muy útiles a menos que sus variantes sean públicas; sería molesto
+tener que anotar todas las variantes de enumeración con <code>pub</code> en todos los casos, por lo que es el predeterminado
+para las variantes de enumeración es ser público. Las estructuras suelen ser útiles sin sus
+los campos son públicos, por lo que los campos de estructura siguen la regla general
+</p><code>siendo privado de forma predeterminada a menos que esté anotado con pub.</code>
+
+<p>Hay una situación más relacionada con un <code>bar</code> que no hemos cubierto, y es
+nuestra última característica del sistema de módulos: la palabra clave <code>use</code>. Cubriremos el <code>uso</code> por sí solo
+primero, y luego mostraremos cómo combinar <code>pub</code> y <code>use</code>.</p>

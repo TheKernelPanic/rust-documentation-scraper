@@ -1,0 +1,388 @@
+
+
+<h2 id="references-and-borrowing"><a class="header" href="#references-and-borrowing">Referencias y préstamos</a></h2>
+
+<p>El problema con el código de tupla del Listado 4-5 es que tenemos que devolver el
+<code>Cadena</code> a la función de llamada para que podamos seguir usando la <code>cadena</code> después de
+llama a <code>calculate_length</code>, porque la <code>cadena</code> se movió a
+<code>calculate_length.</code> <code>En su lugar, podemos proporcionar una referencia al valor de la cadena.</code>
+Una <em>referencia</em> es como un puntero en el sentido de que es una dirección que podemos seguir para acceder
+los datos almacenados en esa dirección; esos datos pertenecen a alguna otra variable.
+A diferencia de un puntero, se garantiza que una referencia apunta a un valor válido de un
+un tipo determinado durante la vida útil de esa referencia.</p>
+
+<p>Así es como definiría y utilizaría una función <code>calculate_length</code> que tenga un
+referencia a un objeto como parámetro en lugar de tomar posesión del</p> valor:
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let s1 = String::from("hello");
+
+    let len = calculate_length(&amp;s1);
+
+    println!("The length of '{}' is {}.", s1, len);
+}
+
+fn calculate_length(s: &amp;String) -&gt; usize {
+    s.len()
+}</code></pre></pre>
+
+<p>Primero, observe que todo el código de tupla en la declaración de variables y el
+el valor devuelto por la función ha desaparecido. En segundo lugar, tenga en cuenta que pasamos <code>&s1</code> a
+<code>calculate_length</code> <code>y, en su definición, tomamos &String en lugar de</code>
+<code>Cadena.</code> Estos signos y signos representan <em>referencias</em> y permiten hacer referencia
+a algún valor sin apropiarse de él. La figura 4-5 muestra este concepto.</p>
+
+<p><img alt="Tres tablas: la tabla para s contiene solo un puntero a la tabla
+para s1. La tabla de s1 contiene los datos de la pila de s1 y apunta a la
+cadenas de datos del montón.» src=» img/trpl04-05.svg "class="center"></p>
+
+<p><span class="caption">Figura 4-5: Un diagrama de <code>&String s</code> apuntando a <code>String s1</code></span></p>
+
+<blockquote>
+<p>Nota: Lo contrario de referenciar usando <code>&</code> es <em>desreferenciar</em>, que es
+<code>se logra con el operador de desreferencia, *.</code> Vamos a ver algunos usos del
+el operador de desreferenciación en el capítulo 8 y analizaremos los detalles de la desreferenciación en
+Capítulo 15.</p> </blockquote>
+
+<p>Echemos un vistazo más de cerca a la llamada a la función aquí:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let s1 = String::from("hello");
+
+    let len = calculate_length(&amp;s1);
+<span class="boring">
+</span><span class="boring">    println!("The length of '{}' is {}.", s1, len);
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn calculate_length(s: &amp;String) -&gt; usize {
+</span><span class="boring">    s.len()
+</span><span class="boring">}</span></code></pre></pre>
+
+<p><code>La sintaxis <code>&s1</code> nos permite crear una referencia que haga <em>referencia</em> al valor de s1</code>
+pero no es su propietario. Como no lo posee, el valor al que apunta lo hará
+no se borrará cuando la referencia deje de usarse.</p>
+
+<p>Del mismo modo, la firma de la función usa <code>&</code> para indicar que el tipo de
+el parámetro <code>s</code> es una referencia. Añadamos algunas anotaciones explicativas</p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span><span class="boring">    let s1 = String::from("hello");
+</span><span class="boring">
+</span><span class="boring">    let len = calculate_length(&amp;s1);
+</span><span class="boring">
+</span><span class="boring">    println!("The length of '{}' is {}.", s1, len);
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn calculate_length(s: &amp;String) -&gt; usize { // s is a reference to a String
+    s.len()
+} // Here, s goes out of scope. But because it does not have ownership of what
+  // it refers to, it is not dropped.</code></pre></pre>
+
+<p>El ámbito en el que la variable <code>s</code> es válida es el mismo que el de cualquier función
+el alcance del parámetro, pero el valor al que apunta la referencia no se descarta
+cuando <code>s</code> deja de usarse, porque <code>s</code> no tiene propiedad. Cuando funciona
+tener referencias como parámetros en lugar de los valores reales, no necesitaremos
+devolver los valores para devolver la propiedad, porque nunca lo hemos hecho
+propiedad.</p>
+
+<p>Llamamos préstamo a la acción de crear un <em>préstamo</em> de referencia. Como en la vida real, si un
+Una persona es dueña de algo, se lo puedes pedir prestado. Cuando termines, tienes
+para devolverlo. No te pertenece.</p>
+
+<p>Entonces, ¿qué pasa si intentamos modificar algo que estamos pidiendo prestado? Prueba el código en
+Listado 4-6. Alerta de spoiler: ¡no funciona!</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><code class="language-rust ignore does_not_compile">fn main() {
+    let s = String::from("hello");
+
+    change(&amp;s);
+}
+
+fn change(some_string: &amp;String) {
+    some_string.push_str(", world");
+}</code></pre>
+
+<p><span class="caption">Listado 4-6: Intento de modificar un valor prestado</span></p>
+
+<p>Este es el error:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling ownership v0.1.0 (file:///projects/ownership)
+error[E0596]: cannot borrow `*some_string` as mutable, as it is behind a `&amp;` reference
+ --&gt; src/main.rs:8:5
+  |
+7 | fn change(some_string: &amp;String) {
+  |                        ------- help: consider changing this to be a mutable reference: `&amp;mut String`
+8 |     some_string.push_str(", world");
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `some_string` is a `&amp;` reference, so the data it refers to cannot be borrowed as mutable
+
+For more information about this error, try `rustc --explain E0596`.
+error: could not compile `ownership` due to previous error
+</code></pre>
+
+<p>Así como las variables son inmutables por defecto, también lo son las referencias. No lo estamos
+se nos permite modificar algo a lo que tenemos referencia.</p>
+
+<h3 id="mutable-references"><a class="header" href="#mutable-references">Referencias mutables</a></h3>
+
+<p>Podemos corregir el código del Listado 4-6 para que podamos modificar un valor prestado
+con solo unos pequeños ajustes que utilizan, en su lugar, una referencia <em>mutable</em></p>:
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut s = String::from("hello");
+
+    change(&amp;mut s);
+}
+
+fn change(some_string: &amp;mut String) {
+    some_string.push_str(", world");
+}</code></pre></pre>
+
+<p><code>Primero cambiamos para ser <code>imprescindibles</code>.</code> Luego creamos una referencia mutable con <code>&mut s</code> donde llamamos a la función de <code>cambio</code> y actualizamos la firma de la función a
+aceptamos una referencia mutable con <code>some_string</code>: &mut String. Esto hace que sea muy
+queda claro que la función de <code>cambio</code> mutará el valor que toma prestado</p>.
+
+<p>Las referencias mutables tienen una gran restricción: si tienes una referencia mutable a
+un valor, no puedes tener otras referencias a ese valor. Este código que
+los intentos de crear dos referencias mutables a <code>s fallarán:</code></p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><code class="language-rust ignore does_not_compile"><span class="boring">fn main() {
+</span>    let mut s = String::from("hello");
+
+    let r1 = &amp;mut s;
+    let r2 = &amp;mut s;
+
+    println!("{}, {}", r1, r2);
+<span class="boring">}</span></code></pre>
+
+<p>Este es el error:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling ownership v0.1.0 (file:///projects/ownership)
+error[E0499]: cannot borrow `s` as mutable more than once at a time
+ --&gt; src/main.rs:5:14
+  |
+4 |     let r1 = &amp;mut s;
+  |              ------ first mutable borrow occurs here
+5 |     let r2 = &amp;mut s;
+  |              ^^^^^^ second mutable borrow occurs here
+6 |
+7 |     println!("{}, {}", r1, r2);
+  |                        -- first borrow later used here
+
+For more information about this error, try `rustc --explain E0499`.
+error: could not compile `ownership` due to previous error
+</code></pre>
+
+<p>Este error indica que este código no es válido porque no podemos pedir prestado <code>s</code> como
+mutable más de una vez a la vez. El primer préstamo mutable está en <code>r1</code> y debe
+¡Durará hasta que se use en la <code>impresión!</code> , pero entre la creación de eso
+referencia mutable y su uso, intentamos crear otra referencia mutable
+</p><code>en <code>r2</code> que toma prestados los mismos datos que r1.</code>
+
+<p>La restricción que impide múltiples referencias mutables a los mismos datos en el
+al mismo tiempo, permite la mutación, pero de una manera muy controlada. Es algo
+con lo que luchan los nuevos rustáceos porque la mayoría de los idiomas permiten mutar
+cuando quieras. La ventaja de tener esta restricción es que Rust puede
+evitar las carreras de datos en tiempo de compilación. Una <em>carrera de datos</em> es similar a una carrera
+afección y se produce cuando se producen estos tres comportamientos:</p>
+
+<ul>
+<li>Dos o más punteros acceden a los mismos datos al mismo tiempo.</li>
+<li>Al menos uno de los punteros se utiliza para escribir en los datos.</li>
+<li>No se utiliza ningún mecanismo para sincronizar el acceso a los datos.</li> </ul>
+
+<p>Las carreras de datos provocan un comportamiento indefinido y pueden ser difíciles de diagnosticar y corregir
+cuando intentas rastrearlos en tiempo de ejecución; Rust evita este problema al
+¡negándose a compilar código con carreras de datos!</p>
+
+<p>Como siempre, podemos usar corchetes para crear un nuevo ámbito, lo que permite
+múltiples referencias mutables, pero no <em>simultáneas</em></p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let mut s = String::from("hello");
+
+    {
+        let r1 = &amp;mut s;
+    } // r1 goes out of scope here, so we can make a new reference with no problems.
+
+    let r2 = &amp;mut s;
+<span class="boring">}</span></code></pre></pre>
+
+<p>Rust aplica una regla similar para combinar referencias mutables e inmutables.
+Este código produce</p> un error:
+
+<pre><code class="language-rust ignore does_not_compile"><span class="boring">fn main() {
+</span>    let mut s = String::from("hello");
+
+    let r1 = &amp;s; // no problem
+    let r2 = &amp;s; // no problem
+    let r3 = &amp;mut s; // BIG PROBLEM
+
+    println!("{}, {}, and {}", r1, r2, r3);
+<span class="boring">}</span></code></pre>
+
+<p>Este es el error:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling ownership v0.1.0 (file:///projects/ownership)
+error[E0502]: cannot borrow `s` as mutable because it is also borrowed as immutable
+ --&gt; src/main.rs:6:14
+  |
+4 |     let r1 = &amp;s; // no problem
+  |              -- immutable borrow occurs here
+5 |     let r2 = &amp;s; // no problem
+6 |     let r3 = &amp;mut s; // BIG PROBLEM
+  |              ^^^^^^ mutable borrow occurs here
+7 |
+8 |     println!("{}, {}, and {}", r1, r2, r3);
+  |                                -- immutable borrow later used here
+
+For more information about this error, try `rustc --explain E0502`.
+error: could not compile `ownership` due to previous error
+</code></pre>
+
+<p>¡Uf! <em>Tampoco</em> podemos tener una referencia mutable mientras tengamos una inmutable
+al mismo valor</p>.
+
+<p>Los usuarios de una referencia inmutable no esperan que el valor cambie repentinamente
+¡debajo de ellos! Sin embargo, se permiten múltiples referencias inmutables porque no
+quien solo está leyendo los datos tiene la capacidad de afectar a los de cualquier otra persona
+lectura de los datos.</p>
+
+<p>Tenga en cuenta que el alcance de una referencia comienza desde donde se introduce y continúa
+hasta la última vez que se utilizó esa referencia. Por ejemplo, este código será
+<code>compilado porque el último uso de las referencias inmutables, ¡el println!</code> ,
+ocurre antes de que se introduzca la referencia mutable:</p>
+
+<pre><pre class="playground"><code class="language-rust edition2021"><span class="boring">fn main() {
+</span>    let mut s = String::from("hello");
+
+    let r1 = &amp;s; // no problem
+    let r2 = &amp;s; // no problem
+    println!("{} and {}", r1, r2);
+    // variables r1 and r2 will not be used after this point
+
+    let r3 = &amp;mut s; // no problem
+    println!("{}", r3);
+<span class="boring">}</span></code></pre></pre>
+
+<p><code>¡Los alcances de las referencias inmutables <code>r1</code> y <code>r2 terminan después del println</code>!</code>
+<code>donde se usaron por última vez, es decir, antes de que la referencia mutable r3 sea</code>
+creado. Estos ámbitos no se superponen, por lo que se permite este código: el compilador puede
+indica que la referencia ya no se usa en un punto antes del final de
+el alcance.</p>
+
+<p>Si bien los errores de préstamo pueden resultar frustrantes a veces, recuerde que es
+el compilador de Rust señala un posible error desde el principio (más bien en el momento de la compilación)
+que en tiempo de ejecución) y le muestra exactamente dónde está el problema. Entonces no lo haces
+tienes que averiguar por qué tus datos no son lo que pensabas que eran.</p>
+
+<h3 id="dangling-references"><a class="header" href="#dangling-references">Referencias colgantes</a></h3>
+
+<p><em>En los idiomas con punteros, es fácil crear erróneamente un colgante
+puntero</em>: un puntero que hace referencia a una ubicación en la memoria que puede haber estado
+dado a otra persona, liberando parte de la memoria y conservando un puntero a esa memoria
+memoria. En Rust, por el contrario, el compilador garantiza que las referencias
+nunca publiques referencias: si tienes una referencia a algunos datos, el
+el compilador se asegurará de que los datos no queden fuera del alcance antes del
+la referencia a los datos sí</p>.
+
+<p>Intentemos crear una referencia colgante para ver cómo Rust los previene con un
+error en tiempo de compilación</p>:
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><code class="language-rust ignore does_not_compile">fn main() {
+    let reference_to_nothing = dangle();
+}
+
+fn dangle() -&gt; &amp;String {
+    let s = String::from("hello");
+
+    &amp;s
+}</code></pre>
+
+<p>Este es el error:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling ownership v0.1.0 (file:///projects/ownership)
+error[E0106]: missing lifetime specifier
+ --&gt; src/main.rs:5:16
+  |
+5 | fn dangle() -&gt; &amp;String {
+  |                ^ expected named lifetime parameter
+  |
+  = help: this function's return type contains a borrowed value, but there is no value for it to be borrowed from
+help: consider using the `'static` lifetime
+  |
+5 | fn dangle() -&gt; &amp;'static String {
+  |                 +++++++
+
+For more information about this error, try `rustc --explain E0106`.
+error: could not compile `ownership` due to previous error
+</code></pre>
+
+<p>Este mensaje de error hace referencia a una función que aún no hemos abordado: la vida útil. Lo haremos
+analizaremos las vidas en detalle en el capítulo 10. Pero, si ignoras las partes
+acerca de Lifetimes, el mensaje contiene la clave de por qué este código es un problema:</p>
+
+<pre><code class="language-text">this function's return type contains a borrowed value, but there is no value
+for it to be borrowed from
+</code></pre>
+
+<p>Echemos un vistazo más de cerca a lo que sucede exactamente en cada etapa de nuestra
+Código <code>colgante</code>:</p>
+
+<p><span class="filename">Nombre del archivo: src/main.rs</span></p>
+
+<pre><code class="language-rust ignore does_not_compile"><span class="boring">fn main() {
+</span><span class="boring">    let reference_to_nothing = dangle();
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn dangle() -&gt; &amp;String { // dangle returns a reference to a String
+
+    let s = String::from("hello"); // s is a new String
+
+    &amp;s // we return a reference to the String, s
+} // Here, s goes out of scope, and is dropped. Its memory goes away.
+  // Danger!</code></pre>
+
+<p>Como <code>s</code> se crea dentro de <code>dangle</code>, cuando el código de <code>dangle finaliza</code>,
+<code>s se</code> desasignará. Pero intentamos devolverle una referencia. Eso significa
+esta referencia apuntaría a una <code>cadena</code> no válida. ¡Eso no está bien! Óxido
+no nos dejará hacer esto.</p>
+
+<p>La solución aquí es devolver la <code>cadena</code> directamente:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span><span class="boring">    let string = no_dangle();
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn no_dangle() -&gt; String {
+    let s = String::from("hello");
+
+    s
+}</code></pre></pre>
+
+<p>Esto funciona sin problemas. La propiedad se traslada y nada
+desasignado</p>.
+
+<h3 id="the-rules-of-references"><a class="header" href="#the-rules-of-references">Las reglas de referencia</a></h3>
+
+<p>Recapitulemos lo que hemos discutido sobre las referencias:</p>
+
+<ul>
+<li>En cualquier momento dado, puede tener una referencia mutable <em>o</em> <em>cualquier</em>
+número de referencias inmutables</li>.
+<li>Las referencias siempre deben ser válidas.</li> </ul>
+
+<p>A continuación, veremos un tipo diferente de referencia: los cortes.</p>

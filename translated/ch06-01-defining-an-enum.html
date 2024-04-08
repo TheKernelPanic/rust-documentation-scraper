@@ -1,0 +1,452 @@
+
+
+<h2 id="defining-an-enum"><a class="header" href="#defining-an-enum">Definición de una enumeración</a></h2>
+
+<p>Donde las estructuras ofrecen una forma de agrupar campos y datos relacionados, como
+un <code>rectángulo</code> con su <code>ancho</code> y <code>alto</code>, las enumeraciones te dan una forma de decir un
+el valor es uno de un posible conjunto de valores. Por ejemplo, es posible que queramos decir que
+El <code>rectángulo</code> forma parte de un conjunto de formas posibles que también incluye <code>círculos</code> y
+<code>Triángulo</code>. Para ello, Rust nos permite codificar estas posibilidades como una enumeración</p>.
+
+<p>Veamos una situación que podríamos querer expresar en código y veamos por qué las enumeraciones
+son útiles y más apropiadas que las estructuras en este caso. Digamos que tenemos que trabajar
+con direcciones IP. Actualmente, se utilizan dos estándares principales para las direcciones IP:
+versión cuatro y versión seis. Porque estas son las únicas posibilidades para un
+La dirección IP que encontrará nuestro programa, podemos <em>enumerar</em> todas las posibles
+variantes, que es de donde la enumeración recibe su nombre</p>.
+
+<p>Cualquier dirección IP puede ser una dirección de la versión cuatro o de la versión seis, pero no
+ambas al mismo tiempo. Esa propiedad de las direcciones IP convierte los datos de enumeración
+estructura apropiada porque un valor de enumeración solo puede ser una de sus variantes.
+Tanto las direcciones de la versión cuatro como las de la versión seis siguen siendo fundamentalmente IP
+direcciones, por lo que deben tratarse como del mismo tipo cuando se manipule el código
+situaciones que se aplican a cualquier tipo de dirección IP.</p>
+
+<p>Podemos expresar este concepto en código definiendo una enumeración <code>iPAddrKind</code> y
+<code><code>enumerar los tipos posibles que puede tener una dirección IP, V4 y V6.</code></code> Estos son los
+variantes de la enumeración</p>:
+
+<pre><pre class="playground"><code class="language-rust">enum IpAddrKind {
+    V4,
+    V6,
+}
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let four = IpAddrKind::V4;
+</span><span class="boring">    let six = IpAddrKind::V6;
+</span><span class="boring">
+</span><span class="boring">    route(IpAddrKind::V4);
+</span><span class="boring">    route(IpAddrKind::V6);
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn route(ip_kind: IpAddrKind) {}</span></code></pre></pre>
+
+<p><code>iPaddrKind</code> es ahora un tipo de datos personalizado que podemos usar en cualquier parte de nuestro código.</p>
+
+<h3 id="enum-values"><a class="header" href="#enum-values">Valores de enumeración</a></h3>
+
+<p>Podemos crear instancias de cada una de las dos variantes de <code>iPaddrKind</code> de la siguiente manera:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">enum IpAddrKind {
+</span><span class="boring">    V4,
+</span><span class="boring">    V6,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn main() {
+</span>    let four = IpAddrKind::V4;
+    let six = IpAddrKind::V6;
+<span class="boring">
+</span><span class="boring">    route(IpAddrKind::V4);
+</span><span class="boring">    route(IpAddrKind::V6);
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn route(ip_kind: IpAddrKind) {}</span></code></pre></pre>
+
+<p>Tenga en cuenta que las variantes de la enumeración tienen un espacio de nombres debajo de su identificador, y
+usamos dos puntos para separarlos. Esto es útil porque ahora ambos valores
+<code>iPaddrKind: :V4 e iPaddrKind: :V6</code> <code>son del mismo tipo: iPaddrKind</code><code>.</code> Nosotros
+podemos entonces, por ejemplo, definir una función que acepte cualquier tipo de <code>iPaddrKind</code></p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">enum IpAddrKind {
+</span><span class="boring">    V4,
+</span><span class="boring">    V6,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let four = IpAddrKind::V4;
+</span><span class="boring">    let six = IpAddrKind::V6;
+</span><span class="boring">
+</span><span class="boring">    route(IpAddrKind::V4);
+</span><span class="boring">    route(IpAddrKind::V6);
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn route(ip_kind: IpAddrKind) {}</code></pre></pre>
+
+<p>Y podemos llamar a esta función con cualquiera de las variantes:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">enum IpAddrKind {
+</span><span class="boring">    V4,
+</span><span class="boring">    V6,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let four = IpAddrKind::V4;
+</span><span class="boring">    let six = IpAddrKind::V6;
+</span><span class="boring">
+</span>    route(IpAddrKind::V4);
+    route(IpAddrKind::V6);
+<span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn route(ip_kind: IpAddrKind) {}</span></code></pre></pre>
+
+<p>El uso de enumeraciones tiene aún más ventajas. Pensando más en nuestro tipo de dirección IP,
+por el momento no tenemos una forma de almacenar los <em>datos</em> reales de la dirección IP;
+solo sabemos de qué <em>tipo</em> es. Dado que acabas de aprender sobre las estructuras en
+En el capítulo 5, es posible que sienta la tentación de abordar este problema con estructuras, como se muestra en
+Listado 6-1</p>.
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    enum IpAddrKind {
+        V4,
+        V6,
+    }
+
+    struct IpAddr {
+        kind: IpAddrKind,
+        address: String,
+    }
+
+    let home = IpAddr {
+        kind: IpAddrKind::V4,
+        address: String::from("127.0.0.1"),
+    };
+
+    let loopback = IpAddr {
+        kind: IpAddrKind::V6,
+        address: String::from("::1"),
+    };
+<span class="boring">}</span></code></pre></pre>
+
+<p><span class="caption">Listado 6-1: Almacenamiento de los datos y la variante <code>iPaddrKind</code> de
+<code>una dirección IP que usa una estructura</code></span></p>
+
+<p><code>Aquí, hemos definido una estructura <code>ipAddr</code> que tiene dos campos: un campo tipo que</code>
+<code>es de tipo <code>ipAddrKind</code> (la enumeración que definimos anteriormente) y un campo de dirección</code>
+<code>de tipo String.</code> Tenemos dos instancias de esta estructura. El primero es el <code>hogar</code>,
+<code>y tiene el valor <code>iPaddrKind: :V4 como su tipo</code> con la dirección asociada</code>
+<code>datos de 127.0.0.1.</code> <code>La segunda instancia es el bucle invertido.</code> Tiene la otra
+<code>variante de <code>iPaddrKind</code> como valor de <code>tipo</code>, <code>V6</code>, y tiene la dirección: :1</code>
+asociado a él. <code>Hemos usado una estructura para agrupar el <code>tipo</code> y la dirección</code>
+los valores se unen, por lo que ahora la variante está asociada al valor</p>.
+
+<p>Sin embargo, representar el mismo concepto usando solo una enumeración es más conciso:
+en lugar de una enumeración dentro de una estructura, podemos colocar datos directamente en cada enumeración
+variante. <code><code>Esta nueva definición de la enumeración <code>IPaddr</code> dice que tanto la V4 como la V6</code></code>
+</p><code>las variantes tendrán valores de cadena asociados:</code>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    enum IpAddr {
+        V4(String),
+        V6(String),
+    }
+
+    let home = IpAddr::V4(String::from("127.0.0.1"));
+
+    let loopback = IpAddr::V6(String::from("::1"));
+<span class="boring">}</span></code></pre></pre>
+
+<p>Adjuntamos datos a cada variante de la enumeración directamente, por lo que no es necesario un
+estructura adicional. Aquí también es más fácil ver otro detalle de cómo funcionan las enumeraciones:
+el nombre de cada variante de enumeración que definimos también se convierte en una función que
+construye una instancia de la enumeración. Es decir, <code>IPAddr: :V4 ()</code> es una llamada a una función
+<code>que toma un argumento de <code>tipo String</code> y devuelve una instancia del tipo IPAddr.</code> Nosotros
+obtenemos automáticamente esta función constructora definida como resultado de definir el
+enumeración.</p>
+
+<p>Hay otra ventaja de usar una enumeración en lugar de una estructura: cada variante
+puede tener diferentes tipos y cantidades de datos asociados. Versión cuatro: IP
+las direcciones siempre tendrán cuatro componentes numéricos que tendrán valores
+entre 0 y 255. Si quisiéramos almacenar las direcciones <code>V4</code> como cuatro valores <code>u8</code>, pero
+aún expresamos las direcciones <code>V6</code> como un valor de <code>cadena</code>, no podríamos hacerlo con
+una estructura. Las enumeraciones manejan este caso con facilidad</p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    enum IpAddr {
+        V4(u8, u8, u8, u8),
+        V6(String),
+    }
+
+    let home = IpAddr::V4(127, 0, 0, 1);
+
+    let loopback = IpAddr::V6(String::from("::1"));
+<span class="boring">}</span></code></pre></pre>
+
+<p>Hemos mostrado varias formas diferentes de definir estructuras de datos para almacenar la versión
+direcciones IP cuatro y versión seis. Sin embargo, resulta que quiere almacenar
+Las direcciones IP y la codificación de qué tipo son es tan común que <a href="../std/net/enum.IpAddr.html">el estándar
+¡La biblioteca tiene una definición que podemos usar!</a> <!-- ignore --> Veamos cómo
+la biblioteca estándar define <code>iPAddr</code>: tiene la enumeración exacta y las variantes que
+lo hemos definido y usado, pero incrusta los datos de la dirección dentro de las variantes en
+la forma de dos estructuras diferentes, que se definen de manera diferente para cada una
+</p>variante:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Ipv4Addr {
+    // --snip--
+}
+
+struct Ipv6Addr {
+    // --snip--
+}
+
+enum IpAddr {
+    V4(Ipv4Addr),
+    V6(Ipv6Addr),
+}
+<span class="boring">}</span></code></pre></pre>
+
+<p>Este código ilustra que puedes poner cualquier tipo de datos dentro de una variante de enumeración:
+cadenas, tipos numéricos o estructuras, por ejemplo. Incluso puedes incluir otro
+¡Enuma! Además, los tipos de bibliotecas estándar no suelen ser mucho más complicados que
+lo que se te ocurra.</p>
+
+<p>Tenga en cuenta que, aunque la biblioteca estándar contiene una definición de <code>ipAddr</code>,
+aún podemos crear y usar nuestra propia definición sin conflictos porque
+no hemos incorporado la definición de la biblioteca estándar a nuestro alcance. Hablaremos
+encontrará más información sobre cómo incluir los tipos en el capítulo 7.</p>
+
+<p>Veamos otro ejemplo de una enumeración en el Listado 6-2: esta tiene un amplio
+variedad de tipos incrustados en sus variantes</p>.
+
+<pre><pre class="playground"><code class="language-rust">enum Message {
+    Quit,
+    Move { x: i32, y: i32 },
+    Write(String),
+    ChangeColor(i32, i32, i32),
+}
+<span class="boring">
+</span><span class="boring">fn main() {}</span></code></pre></pre>
+
+<p><span class="caption">Listado 6-2: Una enumeración de <code>mensajes</code> cuyas variantes almacena cada una
+diferentes cantidades y tipos de valores</span></p>
+
+<p>Esta enumeración tiene cuatro variantes con diferentes tipos:</p>
+
+<ul>
+<li>
+<code>Quit</code> no tiene ningún dato asociado.</li>
+<li>
+<code>Move</code> tiene campos con nombre, como lo hace una estructura.</li>
+<li>
+La <code>escritura</code> incluye una sola <code>cadena</code>.</li>
+<li>
+<code>ChangeColor</code> incluye tres valores de <code>i32</code></li>. </ul>
+
+<p>Definir una enumeración con variantes como las del Listado 6-2 es similar a
+definir diferentes tipos de definiciones de estructuras, excepto que la enumeración no usa el
+<code>La palabra clave de <code>estructura</code> y todas las variantes se agrupan en el mensaje</code>
+escriba. Las siguientes estructuras podrían contener los mismos datos que la enumeración anterior
+las variantes contienen</p>:
+
+<pre><pre class="playground"><code class="language-rust">struct QuitMessage; // unit struct
+struct MoveMessage {
+    x: i32,
+    y: i32,
+}
+struct WriteMessage(String); // tuple struct
+struct ChangeColorMessage(i32, i32, i32); // tuple struct
+<span class="boring">
+</span><span class="boring">fn main() {}</span></code></pre></pre>
+
+<p>Pero si utilizamos las diferentes estructuras, cada una de las cuales tiene su propio tipo,
+no podríamos definir tan fácilmente una función para recibir cualquiera de estos tipos de mensajes
+podríamos hacerlo con la enumeración de <code>mensajes</code> definida en el Listado 6-2, que es de un solo tipo</p>.
+
+<p>Hay una similitud más entre las enumeraciones y las estructuras: del mismo modo que podemos
+definimos métodos en estructuras usando <code>impl</code>, también podemos definir métodos en
+enumeraciones. Este es un método llamado <code>call</code> que podríamos definir en nuestra enumeración de <code>mensajes</code></p>:
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span><span class="boring">    enum Message {
+</span><span class="boring">        Quit,
+</span><span class="boring">        Move { x: i32, y: i32 },
+</span><span class="boring">        Write(String),
+</span><span class="boring">        ChangeColor(i32, i32, i32),
+</span><span class="boring">    }
+</span><span class="boring">
+</span>    impl Message {
+        fn call(&amp;self) {
+            // method body would be defined here
+        }
+    }
+
+    let m = Message::Write(String::from("hello"));
+    m.call();
+<span class="boring">}</span></code></pre></pre>
+
+<p>El cuerpo del método utilizaría <code>self</code> para obtener el valor que denominamos
+método activado. En este ejemplo, hemos creado una variable <code>m</code> que tiene el valor
+<code>Message: :Write (String: :from («hello»))</code>, y eso es lo que será <code>self</code> en
+cuerpo del método de <code>llamada</code> cuando se ejecuta <code>m.call ()</code></p>.
+
+<p>Veamos otra enumeración en la biblioteca estándar que es muy común y
+útil: <code>Opción.</code></p>
+
+<h3 id="the-option-enum-and-its-advantages-over-null-values"><a class="header" href="#the-option-enum-and-its-advantages-over-null-values">La <code>opción</code> Enum y sus ventajas sobre los valores nulos</a></h3>
+
+<p>Esta sección explora un estudio de caso de <code>Option</code>, que es otra enumeración definida
+por la biblioteca estándar. El tipo <code>Option</code> codifica el escenario más común en
+cuyo valor puede ser algo o puede no ser nada</p>.
+
+<p>Por ejemplo, si solicitas el primer elemento de una lista que no esté vacía, obtendrás
+un valor. Si solicitas el primer elemento de una lista vacía, no obtendrás nada.
+Expresar este concepto en términos del sistema de tipos significa que el compilador puede
+comprueba si has manejado todos los casos que deberías estar manejando; esto
+la funcionalidad puede prevenir errores que son extremadamente comunes en otras programaciones
+lenguajes.</p>
+
+<p>El diseño del lenguaje de programación a menudo se piensa en términos de las características que utilizas
+incluyes, pero las funciones que excluyes también son importantes. Rust no tiene
+característica nula que tienen muchos otros idiomas. <em>Nulo</em> es un valor que significa que hay
+no hay ningún valor ahí. En los idiomas con valor nulo, las variables siempre pueden estar en uno de
+dos estados: nulo o no nulo</p>.
+
+<p>En su presentación de 2009 «Referencias nulas: el error de los mil millones de dólares», Tony
+Hoare, el inventor del nulo, dice lo siguiente</p>:
+
+<blockquote>
+<p>Yo lo llamo mi error de mil millones de dólares. En ese momento, estaba diseñando la primera
+sistema de tipos completo para referencias en un lenguaje orientado a objetos. Mi
+el objetivo era garantizar que todo uso de las referencias fuera absolutamente seguro, con
+comprobación realizada automáticamente por el compilador. Pero no pude resistirme a la
+tentación de poner una referencia nula, simplemente porque era muy fácil
+implementar. Esto ha provocado innumerables errores, vulnerabilidades y sistemas
+accidentes, que probablemente hayan causado mil millones de dólares en dolor y daños en
+los últimos cuarenta años.</p> </blockquote>
+
+<p>El problema con los valores nulos es que si intentas usar un valor nulo como
+valor no nulo, obtendrás algún tipo de error. Porque es nulo o no nulo
+la propiedad es omnipresente, es extremadamente fácil cometer este tipo</p> de error.
+
+<p>Sin embargo, el concepto que nulo intenta expresar sigue siendo útil: un
+null es un valor que actualmente no es válido o está ausente por alguna razón.</p>
+
+<p>El problema no está realmente en el concepto sino en lo particular
+implementación. Como tal, Rust no tiene valores nulos, pero sí tiene una enumeración
+que puede codificar el concepto de que un valor está presente o ausente. Esta enumeración es
+<code>Opción</code><T>, y está <a href="../std/option/enum.Option.html">definida por la biblioteca estándar</a> <!-- ignore -->
+de la siguiente manera:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum Option&lt;T&gt; {
+    None,
+    Some(T),
+}
+<span class="boring">}</span></code></pre></pre>
+
+<p>La <T>enumeración de <code>opciones</code> es tan útil que incluso está incluida en el preludio; tú
+no es necesario incluirlo en el ámbito de forma explícita. Sus variantes también se incluyen en
+el preludio: puedes usar <code>Some</code> and <code>None</code> directamente sin la <code>opción::</code>
+prefijo. La <code>enumeración de opciones</code> <T>sigue siendo solo una enumeración normal, y <code>Some (</code>T) y
+</p><code>Ninguna</code> <code>sigue siendo una variante del tipo Option.</code> <T>
+
+<p>La<code></code> <T>sintaxis es una característica de Rust de la que aún no hemos hablado. Es un
+parámetro de tipo genérico, y trataremos los genéricos con más detalle en el capítulo 10.
+Por ahora, todo lo que necesita saber es <T>que<code></code> la variante <code>Some</code> de
+la enumeración de <code>opciones</code> puede contener un dato de cualquier tipo, y que cada uno
+<T>El tipo concreto que se usa en lugar de <code>T forma</code> el tipo de <code>opción</code> general
+un tipo diferente. Estos son algunos ejemplos del uso de valores de <code>opción</code> para mantener
+tipos de números y tipos de cadenas:</p>
+
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn main() {
+</span>    let some_number = Some(5);
+    let some_char = Some('e');
+
+    let absent_number: Option&lt;i32&gt; = None;
+<span class="boring">}</span></code></pre></pre>
+
+<p><code>El tipo de <code>some_number es Option</code>.</code> <i32> <code>El tipo de some_char es</code>
+<code>Opción</code><char>, que es de un tipo diferente. Rust puede inferir estos tipos porque
+hemos especificado un valor dentro de la variante <code>Some</code>. Para <code>absent_number</code>, Rust
+requiere que anotemos el tipo de <code>opción</code> general: el compilador no puede inferir el
+escriba que la variante <code>Some</code> correspondiente se mantendrá mirando solo un
+Valor <code>ninguno</code>. Aquí le decimos a Rust que queremos decir que <code>absent_number</code> es del tipo
+<code>Opción.</code></p> <i32>
+
+<p>Cuando tenemos un valor <code>Some</code>, sabemos que hay un valor presente y que el valor es
+mantenido dentro del <code>Some</code>. Cuando tenemos un valor <code>None</code>, en cierto sentido significa
+lo mismo que nulo: no tenemos un valor válido. Entonces, ¿por qué tener <code>Option</code> <T>
+¿Es mejor que tener nulo?</p>
+
+<p>En resumen, porque <code>Option</code> <T>y <code>T</code> (donde <code>T</code> puede ser de cualquier tipo) son diferentes
+tipos, el compilador no nos permitirá usar un <T>valor de <code>opción</code> como si lo fuera
+definitivamente un valor válido. Por ejemplo, este código no se compilará porque es
+</p><i8>intentando añadir un <code>i8</code> a una <code>opción</code>:
+
+<pre><code class="language-rust ignore does_not_compile"><span class="boring">fn main() {
+</span>    let x: i8 = 5;
+    let y: Option&lt;i8&gt; = Some(5);
+
+    let sum = x + y;
+<span class="boring">}</span></code></pre>
+
+<p>Si ejecutamos este código, aparece un mensaje de error como este:</p>
+
+<pre><code class="language-console">$ cargo run
+   Compiling enums v0.1.0 (file:///projects/enums)
+error[E0277]: cannot add `Option&lt;i8&gt;` to `i8`
+ --&gt; src/main.rs:5:17
+  |
+5 |     let sum = x + y;
+  |                 ^ no implementation for `i8 + Option&lt;i8&gt;`
+  |
+  = help: the trait `Add&lt;Option&lt;i8&gt;&gt;` is not implemented for `i8`
+  = help: the following other types implement trait `Add&lt;Rhs&gt;`:
+            &lt;&amp;'a i8 as Add&lt;i8&gt;&gt;
+            &lt;&amp;i8 as Add&lt;&amp;i8&gt;&gt;
+            &lt;i8 as Add&lt;&amp;i8&gt;&gt;
+            &lt;i8 as Add&gt;
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `enums` due to previous error
+</code></pre>
+
+<p>¡Intenso! En efecto, este mensaje de error significa que Rust no entiende cómo
+para agregar un <code>i8</code> y una <code>opción</code><i8>, porque son tipos diferentes. Cuando nosotros
+tenemos un valor de tipo como <code>i8</code> en Rust, el compilador se asegurará de que
+siempre tenemos un valor válido. Podemos proceder con confianza sin tener que comprobarlo
+para nulo antes de usar ese valor. Solo cuando tenemos una <code>opción</code> <i8>(o
+sea cual sea el tipo de valor con el que estemos trabajando), ¿es posible que tengamos que preocuparnos?
+no tiene un valor, y el compilador se asegurará de que manejemos ese caso antes
+usando el valor</p>.
+
+<p>En otras palabras, tienes que convertir una <code>opción</code> en <T>una <code>T</code> antes de poder
+realizar operaciones <code>en T</code> con ella. Por lo general, esto ayuda a capturar uno de los más
+problemas comunes con el valor nulo: asumir que algo no es nulo cuando en realidad lo es.</p>
+
+<p>Eliminar el riesgo de asumir incorrectamente un valor que no es nulo le ayuda a ser
+más confianza en su código. Para tener un valor que posiblemente pueda ser
+null, debe optar por participar explícitamente haciendo que el tipo de ese valor sea <code>una opción</code><T>.
+Luego, cuando utilices ese valor, tendrás que gestionar el caso de forma explícita
+cuando el valor es nulo. Siempre que un valor tenga un tipo que no sea un
+<code>Opción</code><T>, <em>puedes</em> asumir con seguridad que el valor no es nulo. Este era un
+decisión de diseño deliberada de Rust para limitar la omnipresencia de null y aumentar
+la seguridad del código de Rust.</p>
+
+<p>Entonces, ¿cómo se obtiene el valor <code>T</code> de una variante <code>Some</code> cuando tienes un valor?
+de tipo <code>Option</code> <T>para que puedas usar ese valor? La <code>enumeración de opciones</code> <T>tiene un
+gran cantidad de métodos que son útiles en una variedad de situaciones; usted puede
+compruébalos en <a href="../std/option/enum.Option.html">su documentación</a> <!-- ignore -->. Familiarizarse
+con los métodos de <code>Option</code> <T>será extremadamente útil en su viaje con
+Óxido.</p>
+
+<p>En general, para usar un <T>valor de <code>opción</code>, es necesario tener un código que
+gestionará cada variante. Quieres un código que se ejecute solo cuando tengas un
+<code>Algún valor (T)</code>, y este código puede usar la <code>T</code> interna. ¿Quieres un poco
+otro código para ejecutarlo solo si tienes un valor <code>None</code> y ese código no tiene un
+Valor <code>T</code> disponible. La expresión de <code>coincidencia</code> es una construcción de flujo de control que
+hace precisamente esto cuando se usa con enumeraciones: ejecutará un código diferente dependiendo de
+qué variante de la enumeración tiene, y ese código puede usar los datos dentro del
+valor coincidente</p>.
